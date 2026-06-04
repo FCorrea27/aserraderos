@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0F2E1E">
+<title>Relevamiento Aserraderos · Proyecto Ituzaingó</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230F2E1E'/%3E%3Ccircle cx='50' cy='50' r='26' fill='none' stroke='%2359A77F' stroke-width='5'/%3E%3Cg fill='%2359A77F'%3E%3Cpolygon points='50,16 56,24 44,24'/%3E%3Cpolygon points='74,28 78,38 67,35'/%3E%3Cpolygon points='84,50 78,58 78,42'/%3E%3Cpolygon points='74,72 67,65 78,62'/%3E%3Cpolygon points='50,84 44,76 56,76'/%3E%3Cpolygon points='26,72 33,65 22,62'/%3E%3Cpolygon points='16,50 22,42 22,58'/%3E%3Cpolygon points='26,28 33,35 22,38'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='7' fill='%2359A77F'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg:        #0F2E1E;
+  --bg2:       #1B392D;
+  --bg3:       #2B6046;
+  --card:      #1B392D;
+  --border:    #2B6046;
+  --accent:    #59A77F;
+  --accent2:   #9ADAB7;
+  --danger:    #e07050;
+  --text:      #FFFFFF;
+  --text2:     #CCE6D9;
+  --text3:     #3A8B6B;
+  --fill:      #EBF4EF;
+  --mono:      'Calibri', 'Segoe UI', sans-serif;
+  --sans:      'Calibri', 'Segoe UI', sans-serif;
+  --r:         10px;
+  --r2:        6px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overscroll-behavior: none;
+}
+
+/* SPLASH */
+#splash {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; z-index: 999; transition: opacity 0.4s;
+}
+#splash svg { width: 72px; height: 72px; }
+#splash h1 { font-family: var(--mono); font-size: 1.05rem; color: var(--accent); letter-spacing: 0.08em; text-align:center; }
+#splash p { font-size: 0.8rem; color: var(--text2); }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* CONFIG */
+#config-screen {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px; gap: 16px;
+}
+#config-screen .cfg-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 24px; width: 100%; max-width: 420px; display:flex; flex-direction:column; gap:14px;
+}
+#config-screen svg { width: 56px; height: 56px; align-self:center; }
+#config-screen h2 { font-family: var(--mono); font-size: 0.95rem; color: var(--accent); text-align:center; letter-spacing:0.05em; }
+#config-screen label { font-size: 0.72rem; color: var(--text2); font-family: var(--mono); display:block; margin-bottom:5px; }
+#config-screen input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 11px; color: var(--text); font-family: var(--sans); font-size: 0.9rem;
+}
+#config-screen .cfg-hint { font-size: 0.68rem; color: var(--text3); margin-top:4px; }
+
+/* SHELL */
+#app { display: none; flex-direction: column; min-height: 100vh; }
+
+/* TOP BAR */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 14px;
+  display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar svg { width: 30px; height: 30px; flex-shrink:0; }
+.topbar-txt { line-height:1.25; }
+.topbar-logo { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.05em; }
+.topbar-sub { font-size: 0.66rem; color: var(--text2); }
+.topbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.badge-sync { font-size: 0.62rem; font-family: var(--mono); padding: 3px 8px; border-radius: 20px; white-space:nowrap; }
+.badge-sync.online { background: #0e3d2e; color: var(--accent); border: 1px solid var(--accent); }
+.badge-sync.offline { background: #3d1a0e; color: var(--danger); border: 1px solid var(--danger); }
+
+/* NAV TABS */
+.nav-tabs {
+  display: flex; overflow-x: auto; scrollbar-width: none;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 0 6px;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  flex-shrink: 0; padding: 9px 13px;
+  font-size: 0.68rem; font-family: var(--mono); letter-spacing: 0.03em;
+  color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* PROGRESS */
+.progress-bar { height: 3px; background: var(--bg2); }
+.progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; width: 0; }
+
+/* MAIN */
+.main { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
+.section-hdr { margin-bottom: 16px; }
+.section-hdr h2 { font-family: var(--mono); font-size: 0.95rem; color: var(--accent); letter-spacing: 0.04em; }
+.section-hdr p { font-size: 0.76rem; color: var(--text2); margin-top: 4px; }
+
+/* DOTS */
+.dots { display:flex; gap:6px; justify-content:center; margin: 4px 0 14px; flex-wrap:wrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.2s; cursor:pointer; }
+.dot.active { background: var(--accent); }
+.dot.done { background: var(--text3); }
+
+/* QCARD */
+.qcard {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 14px; margin-bottom: 12px;
+}
+.qcard.error { border-color: var(--danger); }
+.qlabel { margin-bottom: 10px; }
+.qtext { font-size: 0.88rem; color: var(--text); font-weight: 600; line-height:1.3; }
+.qnota { font-size: 0.72rem; color: var(--text2); font-weight: 400; margin-top: 4px; font-style: italic; }
+.qreq { color: var(--accent); margin-left: 3px; }
+.verror { color: var(--danger); font-size: 0.72rem; margin-top: 8px; }
+
+/* OPTIONS */
+.options { display: flex; flex-direction: column; gap: 7px; }
+.opt-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 10px 12px; cursor: pointer; transition: all 0.15s;
+}
+.opt-item.selected { border-color: var(--accent); background: #14402e; }
+.opt-circle { width: 17px; height: 17px; border-radius: 50%; border: 2px solid var(--border); flex-shrink:0; position:relative; }
+.opt-item.selected .opt-circle { border-color: var(--accent); }
+.opt-item.selected .opt-circle::after { content:''; position:absolute; inset:3px; border-radius:50%; background: var(--accent); }
+.opt-square { width: 17px; height: 17px; border-radius: 4px; border: 2px solid var(--border); flex-shrink:0; position:relative; }
+.opt-item.selected .opt-square { border-color: var(--accent); }
+.opt-item.selected .opt-square::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color: var(--accent); font-size:0.72rem; font-weight:700; }
+.opt-label { font-size: 0.84rem; color: var(--text); }
+
+/* NUM */
+.num-group { display: flex; align-items: center; gap: 10px; }
+.num-input {
+  flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 11px; color: var(--text); font-family: var(--sans); font-size: 0.92rem; width:100%;
+}
+.num-input:focus { outline: none; border-color: var(--accent); }
+.num-unit { font-size: 0.78rem; color: var(--text2); font-family: var(--mono); white-space:nowrap; }
+.pct-total { font-size: 0.72rem; font-family: var(--mono); margin-top: 6px; color: var(--text3); }
+.pct-total.ok { color: var(--accent); }
+.pct-total.err { color: var(--danger); }
+
+/* SELECT (dropdown) */
+.sel-drop {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 11px; color: var(--text); font-family: var(--sans); font-size: 0.9rem;
+}
+.sel-drop:focus { outline:none; border-color: var(--accent); }
+
+/* TEXT */
+.text-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 11px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; resize: vertical;
+}
+.text-input:focus { outline: none; border-color: var(--accent); }
+.text-hint { font-size: 0.66rem; color: var(--text3); margin-top: 5px; font-style: italic; }
+.notes-box label { font-size: 0.78rem; color: var(--text2); font-family: var(--mono); display:block; margin-bottom:6px; }
+
+/* CALC */
+.calc-display {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--fill); border-radius: var(--r2); padding: 12px 14px; color: var(--bg);
+}
+.calc-display > span:first-child { font-size: 0.82rem; font-weight:600; }
+.calc-val { font-family: var(--mono); font-size: 1.05rem; font-weight: 700; color: var(--bg2); }
+.calc-val small { font-size: 0.7rem; font-weight: 400; }
+.calc-formula { font-size: 0.68rem; color: var(--text3); font-family: var(--mono); margin-top: 6px; }
+
+/* CATEGORY DISPLAY */
+.cat-display {
+  border-radius: var(--r); padding: 16px; text-align:center; margin-top:4px;
+  border: 2px solid var(--border);
+}
+.cat-letter { font-family: var(--mono); font-size: 2.4rem; font-weight: 700; line-height:1; }
+.cat-desc { font-size: 0.78rem; margin-top: 6px; }
+.cat-score { font-size: 0.72rem; font-family: var(--mono); color: var(--text2); margin-top: 4px; }
+.cat-A { border-color: var(--accent); } .cat-A .cat-letter { color: var(--accent2); }
+.cat-B { border-color: var(--accent); } .cat-B .cat-letter { color: var(--accent); }
+.cat-C { border-color: #c9a14a; } .cat-C .cat-letter { color: #d6b15c; }
+.cat-D { border-color: var(--danger); } .cat-D .cat-letter { color: var(--danger); }
+
+/* SECTION DIVIDER */
+.sdiv { font-family: var(--mono); font-size: 0.74rem; color: var(--accent); letter-spacing: 0.05em; padding: 10px 0 2px; border-top:1px solid var(--border); margin-top:6px; }
+
+/* GPS button */
+.gps-btn {
+  background: var(--accent); color: var(--bg); border: none; border-radius: var(--r2);
+  padding: 11px 16px; font-family: var(--mono); font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; width: 100%;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg2); border-top: 1px solid var(--border);
+  padding: 12px 14px; display: flex; gap: 10px; z-index: 100;
+}
+.btn {
+  flex: 1; padding: 12px; border: none; border-radius: var(--r2);
+  font-family: var(--mono); font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-prev { background: var(--bg3); color: var(--text); }
+.btn-prev:disabled { opacity: 0.4; }
+.btn-next { background: var(--accent); color: var(--bg); }
+.btn-submit { background: var(--accent2); color: var(--bg); }
+
+/* SAVED */
+.saved-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 12px 14px; margin-bottom: 10px; display: flex; align-items:center; gap:10px;
+}
+.saved-item-info { flex:1; }
+.saved-item-info h4 { font-size: 0.88rem; color: var(--text); }
+.saved-item-info p { font-size: 0.72rem; color: var(--text2); margin-top: 3px; }
+.saved-item-btns { display:flex; flex-direction:column; gap:6px; }
+.btn-sm { padding: 6px 10px; border:none; border-radius: var(--r2); font-family: var(--mono); font-size:0.66rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn-sm-accent { background: var(--accent); color: var(--bg); }
+.btn-sm-warn { background: var(--bg3); color: var(--danger); }
+
+/* MODAL / OVERLAY */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index: 500; padding:24px; }
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; max-width: 380px; text-align: center; }
+.modal-icon { font-size: 2.2rem; margin-bottom: 10px; }
+.modal h3 { font-family: var(--mono); font-size: 1rem; color: var(--accent); letter-spacing:0.04em; }
+.modal p { font-size: 0.82rem; color: var(--text2); margin: 10px 0 18px; line-height:1.45; }
+.modal-btns { display:flex; gap:10px; }
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--bg3); color: var(--text); padding: 11px 20px; border-radius: 24px;
+  font-size: 0.82rem; opacity: 0; transition: all 0.3s; z-index: 600; pointer-events:none;
+  border: 1px solid var(--accent);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="30" fill="none" stroke="#59A77F" stroke-width="5"/>
+    <g fill="#59A77F">
+      <polygon points="50,12 57,22 43,22"/>
+      <polygon points="78,24 82,36 69,32"/>
+      <polygon points="88,50 80,59 80,41"/>
+      <polygon points="78,76 69,68 82,64"/>
+      <polygon points="50,88 43,78 57,78"/>
+      <polygon points="22,76 31,68 18,64"/>
+      <polygon points="12,50 20,41 20,59"/>
+      <polygon points="22,24 31,32 18,36"/>
+    </g>
+    <circle cx="50" cy="50" r="8" fill="#59A77F"/>
+  </svg>
+  <h1>RELEVAMIENTO DE ASERRADEROS</h1>
+  <p>Proyecto Ituzaingó · Corrientes y Misiones</p>
+  <div class="spinner"></div>
+</div>
+
+<!-- CONFIG -->
+<div id="config-screen">
+  <div class="cfg-card">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#59A77F" stroke-width="5"/>
+      <g fill="#59A77F">
+        <polygon points="50,12 57,22 43,22"/><polygon points="78,24 82,36 69,32"/>
+        <polygon points="88,50 80,59 80,41"/><polygon points="78,76 69,68 82,64"/>
+        <polygon points="50,88 43,78 57,78"/><polygon points="22,76 31,68 18,64"/>
+        <polygon points="12,50 20,41 20,59"/><polygon points="22,24 31,32 18,36"/>
+      </g>
+      <circle cx="50" cy="50" r="8" fill="#59A77F"/>
+    </svg>
+    <h2>CONFIGURACIÓN INICIAL</h2>
+    <div>
+      <label>Nombre del relevador</label>
+      <input id="cfg-nombre" type="text" placeholder="Tu nombre y apellido">
+    </div>
+    <div>
+      <label>URL de Google Apps Script</label>
+      <input id="cfg-url" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+      <div class="cfg-hint">Pegá el enlace del Web App. Podés dejarlo vacío y trabajar 100% offline; los datos se guardan en el dispositivo y se sincronizan después.</div>
+    </div>
+    <button class="btn btn-next" style="width:100%" onclick="saveConfig()">COMENZAR</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#59A77F" stroke-width="6"/>
+      <g fill="#59A77F">
+        <polygon points="50,12 57,22 43,22"/><polygon points="78,24 82,36 69,32"/>
+        <polygon points="88,50 80,59 80,41"/><polygon points="78,76 69,68 82,64"/>
+        <polygon points="50,88 43,78 57,78"/><polygon points="22,76 31,68 18,64"/>
+        <polygon points="12,50 20,41 20,59"/><polygon points="22,24 31,32 18,36"/>
+      </g>
+      <circle cx="50" cy="50" r="8" fill="#59A77F"/>
+    </svg>
+    <div class="topbar-txt">
+      <div class="topbar-logo">RELEVAMIENTO ASERRADEROS</div>
+      <div class="topbar-sub">Proyecto Ituzaingó</div>
+    </div>
+    <div class="topbar-right">
+      <span id="sync-badge" class="badge-sync online">● ONLINE</span>
+    </div>
+  </div>
+
+  <div class="nav-tabs" id="nav-tabs"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <div class="main" id="main-content"></div>
+
+  <div class="bottom-nav">
+    <button class="btn btn-prev" id="btn-prev" onclick="prevSection()">← ANTERIOR</button>
+    <button class="btn btn-next" id="btn-next" onclick="nextSection()">SIGUIENTE →</button>
+    <button class="btn btn-submit" id="btn-submit" style="display:none" onclick="submitForm()">✓ FINALIZAR FICHA</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let CFG = {};
+let formData = {};
+let currentSection = 0;
+let isOnline = navigator.onLine;
+
+// ═══════════════════════════════════════════════════════════
+// DEPARTAMENTOS (INDEC) — Corrientes (25) y Misiones (17)
+// ═══════════════════════════════════════════════════════════
+const DEPARTAMENTOS = {
+  'Corrientes': [
+    'Bella Vista','Berón de Astrada','Capital','Concepción','Curuzú Cuatiá','Empedrado',
+    'Esquina','General Alvear','General Paz','Goya','Itatí','Ituzaingó','Lavalle','Mburucuyá',
+    'Mercedes','Monte Caseros','Paso de los Libres','Saladas','San Cosme','San Luis del Palmar',
+    'San Martín','San Miguel','San Roque','Santo Tomé','Sauce'
+  ],
+  'Misiones': [
+    'Apóstoles','Cainguás','Candelaria','Capital','Concepción','Eldorado','General Manuel Belgrano',
+    'Guaraní','Iguazú','Leandro N. Alem','Libertador General San Martín','Montecarlo','Oberá',
+    'San Ignacio','San Javier','San Pedro','25 de Mayo'
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════
+// FORM SCHEMA — 7 bloques (liviano, foco abastecimiento de chips)
+// ═══════════════════════════════════════════════════════════
+const SCHEMA = {
+  0: {
+    title: 'DATOS DEL RELEVAMIENTO',
+    desc: 'Identificación de la ficha y del relevamiento',
+    questions: [
+      { id: 'fecha', type: 'date', label: 'Fecha de visita' },
+      { id: 'ficha_num', type: 'num', label: 'N° de ficha', unit: '' },
+      { id: 'relevador', type: 'text1', label: 'Relevador' },
+      { id: 'contacto_directo', type: 'sn', label: '¿Hubo contacto directo con un responsable del establecimiento?' },
+    ]
+  },
+  1: {
+    title: 'DATOS DEL ASERRADERO',
+    desc: 'Identificación de la empresa e informante',
+    questions: [
+      { id: 'razon_social', type: 'text1', label: 'Nombre / Razón social del aserradero' },
+      { id: 'cuit', type: 'text1', label: 'CUIT' },
+      { id: 'forma_juridica', type: 'sel1', label: 'Tipo de empresa',
+        options: ['Persona física','SRL','SA','Cooperativa','Otra'] },
+      { id: 'informante_nombre', type: 'text1', label: 'Nombre del informante' },
+      { id: 'informante_cargo', type: 'text1', label: 'Cargo del informante' },
+      { id: 'informante_tel', type: 'text1', label: 'Teléfono / WhatsApp' },
+      { id: 'informante_email', type: 'text1', label: 'Correo electrónico' },
+    ]
+  },
+  2: {
+    title: 'UBICACIÓN',
+    desc: 'Provincia, departamento, coordenadas y acceso',
+    questions: [
+      { id: 'provincia', type: 'sel1', label: 'Provincia',
+        options: ['Corrientes','Misiones'] },
+      { id: 'departamento', type: 'deptdrop', label: 'Departamento', dependsOn: 'provincia' },
+      { id: 'localidad', type: 'text1', label: 'Localidad / paraje' },
+      { id: 'gps_coords', type: 'gps', label: 'Coordenadas GPS' },
+      { id: 'acceso', type: 'sel1', label: 'Tipo de acceso al establecimiento',
+        options: ['Asfalto hasta la planta','Ripio consolidado, transitable todo el año','Tierra mejorada, con dificultad en lluvia','Tierra sin mejorar, intransitable en lluvia'] },
+      { id: 'dist_ruta', type: 'num', label: 'Distancia a la ruta asfaltada principal', unit: 'km', decimal: true },
+    ]
+  },
+  3: {
+    title: 'CAPACIDAD PRODUCTIVA',
+    desc: 'Especies, volumen, turnos y equipamiento',
+    questions: [
+      { id: 'especies', type: 'selm', label: 'Especies procesadas',
+        options: ['Pinus taeda','Pinus elliottii','Pino híbrido','Eucalyptus grandis','Eucalyptus spp.','Otra'] },
+      { id: 'rollizos_mes', type: 'num', label: 'Consumo de rollizos', unit: 'm³/mes' },
+      { id: 'prod_aserrada', type: 'num', label: 'Producción de madera aserrada', unit: 'm³/mes' },
+      { id: 'cap_instalada', type: 'num', label: 'Capacidad instalada de aserrado', unit: 'm³/mes' },
+      { id: 'uso_capacidad', type: 'calc', label: 'Uso de capacidad instalada', formula: 'Producción / Capacidad × 100', unit: '%' },
+      { id: 'turnos', type: 'num', label: 'Turnos por día', unit: 'turnos' },
+      { id: 'dias_mes', type: 'num', label: 'Días operados por mes', unit: 'días' },
+      { id: 'equip_aserrado', type: 'sel1', label: 'Equipamiento de aserrado principal',
+        options: ['Sierra sinfín / banda','Sierra circular múltiple','Sierra alternativa / bastidor','Línea automatizada','Mixto'] },
+      { id: 'rendimiento', type: 'num', label: 'Rendimiento de aserrado (si lo conoce)', unit: '%', decimal: true },
+    ]
+  },
+  4: {
+    title: 'SUBPRODUCTOS Y ASTILLAS',
+    desc: 'Generación de subproductos limpios y situación de astillado',
+    questions: [
+      { id: 'subprod_gen', type: 'selm', label: 'Subproductos generados actualmente',
+        options: ['Costaneros / despuntes','Recortes limpios','Aserrín / viruta','Corteza','Astillas (chips)'] },
+      { id: 'vol_subprod_limpio', type: 'num', label: 'Volumen estimado de subproductos limpios (sin corteza)', unit: 'm³/mes' },
+      { id: 'destino_subprod', type: 'sel1', label: 'Destino actual de los subproductos',
+        options: ['Venta a terceros','Uso propio (energía / caldera)','Descarte / sin valorizar','Mixto'] },
+      // BIFURCACIÓN: produce chips actualmente?
+      { id: 'produce_chips', type: 'sn', label: '¿Produce astillas (chips) actualmente?' },
+      // ── Rama SÍ: calidad del chip
+      { id: 'chip_intro', type: 'sectionlabel', label: 'CALIDAD DE ASTILLA (PRODUCCIÓN ACTUAL)', desc: 'Completar solo si produce chips actualmente.', skipIf: {id:'produce_chips', val:'No'} },
+      { id: 'chip_vol', type: 'num', label: 'Volumen de chips producido', unit: 'ton/mes', decimal: true, skipIf: {id:'produce_chips', val:'No'} },
+      { id: 'chip_especie', type: 'sel1', label: 'Composición de los chips', skipIf: {id:'produce_chips', val:'No'},
+        options: ['Pino puro','Eucalipto puro','Mezcla pino/eucalipto','Mezcla con otras especies'] },
+      { id: 'chip_corteza', type: 'sel1', label: 'Contenido de corteza en los chips', skipIf: {id:'produce_chips', val:'No'},
+        options: ['Sin corteza (descortezado previo)','Corteza baja (< 1%)','Corteza media (1–5%)','Corteza alta (> 5%) / no controlado'] },
+      { id: 'chip_clasif', type: 'sel1', label: 'Clasificación / zarandeo de chips', skipIf: {id:'produce_chips', val:'No'},
+        options: ['Sí, con zaranda (granulometría controlada)','Clasificación parcial','Sin clasificar'] },
+      { id: 'chip_finos', type: 'sel1', label: 'Presencia de finos / aserrín mezclado', skipIf: {id:'produce_chips', val:'No'},
+        options: ['Bajo / separado','Moderado','Alto / sin separar'] },
+      { id: 'chip_humedad', type: 'num', label: 'Humedad estimada de los chips', unit: '% b.h.', decimal: true, skipIf: {id:'produce_chips', val:'No'} },
+      { id: 'chip_astilladora', type: 'sel1', label: 'Tipo de astilladora', skipIf: {id:'produce_chips', val:'No'},
+        options: ['De disco','De tambor','De cuchillas','No sabe'] },
+      // ── Rama NO: potencial de astillado
+      { id: 'pot_intro', type: 'sectionlabel', label: 'POTENCIAL DE ASTILLADO', desc: 'Completar solo si NO produce chips actualmente.', skipIf: {id:'produce_chips', val:'Sí'} },
+      { id: 'pot_interes_astillar', type: 'sn', label: '¿Tendría interés en astillar sus subproductos limpios?', skipIf: {id:'produce_chips', val:'Sí'} },
+      { id: 'pot_descortezado', type: 'sn', label: '¿Cuenta con descortezado de rollizos?', skipIf: {id:'produce_chips', val:'Sí'} },
+      { id: 'pot_espacio', type: 'sel1', label: 'Espacio físico para instalar línea de astillado', skipIf: {id:'produce_chips', val:'Sí'},
+        options: ['Disponible sin intervención','Con reubicación de equipos','Con obra civil menor','Con obra civil mayor','No hay espacio adecuado'] },
+      { id: 'pot_vol_astillable', type: 'num', label: 'Volumen potencial astillable (subproductos limpios)', unit: 'ton/mes', decimal: true, skipIf: {id:'produce_chips', val:'Sí'} },
+    ]
+  },
+  5: {
+    title: 'ABASTECIMIENTO FORESTAL',
+    desc: 'Origen de la madera, proveedores y radio de abastecimiento',
+    questions: [
+      { id: 'origen_madera', type: 'sel1', label: 'Origen de la madera',
+        options: ['Bosque propio exclusivamente','Compra a terceros exclusivamente','Mixto (propio + compra)'] },
+      { id: 'radio_abast', type: 'sel1', label: 'Radio de abastecimiento predominante',
+        options: ['< 50 km','50–100 km','101–200 km','> 200 km'] },
+      { id: 'proveedores', type: 'textnote', label: 'Proveedores principales (referencia)' },
+      { id: 'contrato_madera', type: 'sn', label: '¿Tiene contratos de abastecimiento de madera vigentes?' },
+      { id: 'estacionalidad', type: 'sel1', label: 'Estacionalidad del abastecimiento',
+        options: ['Estable todo el año','Variación estacional moderada','Fuerte estacionalidad / interrupciones'] },
+    ]
+  },
+  6: {
+    title: 'INTERÉS COMERCIAL',
+    desc: 'Disposición a participar del Proyecto Ituzaingó',
+    questions: [
+      { id: 'interes_proyecto', type: 'sel1', label: 'Interés en participar del Proyecto Ituzaingó',
+        options: ['Alto','Medio','Bajo','Nulo / no opinó'] },
+      { id: 'vol_disponible', type: 'sel1', label: 'Disponibilidad de chips para celulosa',
+        options: ['Sí, disponible de inmediato','Sí, con ampliación de producción','Sí, sujeto a renegociación de contratos','No disponible actualmente','No definido / no sabe'] },
+      { id: 'vol_potencial', type: 'num', label: 'Volumen potencial estimado para el proyecto', unit: 'ton/mes', decimal: true },
+      { id: 'contrato_largo', type: 'sn', label: '¿Interés en contrato de suministro de largo plazo?' },
+      { id: 'condiciones', type: 'selm', label: 'Condiciones / requisitos mencionados',
+        options: ['Precio de referencia asegurado','Volumen mínimo garantizado','Apoyo a inversión / equipamiento','Logística a cargo del comprador','Plazos de pago','Otra'] },
+      { id: 'restricciones', type: 'selm', label: 'Restricciones identificadas para suministrar',
+        options: ['Exclusividad con otro comprador','Cupos comprometidos','Limitaciones logísticas','Variabilidad estacional','Capacidad insuficiente','Ninguna'] },
+      { id: 'coment_comercial', type: 'textarea', label: 'Comentarios comerciales del informante' },
+    ]
+  },
+  7: {
+    title: 'EVALUACIÓN FINAL DEL RELEVADOR',
+    desc: 'Score de aptitud y categorización automática A/B/C/D',
+    questions: [
+      { id: 'ev_intro', type: 'sectionlabel', label: 'COMPONENTES DE APTITUD', desc: 'Calificación del relevador. Cada componente 0–3. La categoría A/B/C/D se calcula automáticamente.' },
+      { id: 'ev_subprod', type: 'ord3', label: 'Disponibilidad de subproductos limpios / chips' },
+      { id: 'ev_calidad', type: 'ord3', label: 'Calidad / aptitud del chip para celulosa' },
+      { id: 'ev_capacidad', type: 'ord3', label: 'Capacidad productiva y volumen' },
+      { id: 'ev_astillado', type: 'ord3', label: 'Capacidad o potencial de astillado' },
+      { id: 'ev_logistica', type: 'ord3', label: 'Logística de despacho y acceso vial' },
+      { id: 'ev_abast', type: 'ord3', label: 'Solidez del abastecimiento forestal' },
+      { id: 'ev_interes', type: 'ord3', label: 'Interés comercial percibido' },
+      { id: 'ev_score', type: 'calc', label: 'SCORE DE APTITUD', formula: 'Suma de 7 componentes / 21 → escala 0–100', unit: '/ 100' },
+      { id: 'ev_categoria', type: 'catdisplay', label: 'CATEGORÍA AUTOMÁTICA' },
+      { id: 'ev_cat_override', type: 'sel1', label: 'Ajuste manual de categoría (opcional)',
+        options: ['Mantener categoría automática','Forzar A','Forzar B','Forzar C','Forzar D'] },
+      { id: 'ev_aptitud', type: 'ord3b', label: 'Aptitud para suministro de chips a celulosa' },
+      { id: 'ev_interes_escala', type: 'ord5b', label: 'Interés percibido del informante (1–5)' },
+      { id: 'ev_proximo_paso', type: 'sel1', label: 'Próximo paso recomendado',
+        options: ['Visita técnica de detalle','Solicitar muestras de chip','Negociación comercial','Mantener en seguimiento','Descartar'] },
+      { id: 'ev_comentarios', type: 'textarea', label: 'Comentarios finales del relevador' },
+    ]
+  },
+};
+
+const SECTIONS = [
+  'Relevamiento','Aserradero','Ubicación','Capacidad','Subproductos','Abastecimiento','Comercial','Evaluación'
+];
+
+const ORD3_OPTS = [
+  { val: 3, label: '3 — Muy bueno / apto' },
+  { val: 2, label: '2 — Bueno / apto con mejoras menores' },
+  { val: 1, label: '1 — Limitado / requiere inversión' },
+  { val: 0, label: '0 — Deficiente / no apto' },
+];
+const ORD3B_OPTS = [
+  { val: 3, label: '3 — Apto sin inversiones (suministro inmediato)' },
+  { val: 2, label: '2 — Apto con inversiones menores (< 1 año)' },
+  { val: 1, label: '1 — Apto con inversiones mayores (1–3 años)' },
+  { val: 0, label: '0 — No apto en plazo razonable' },
+];
+const ORD5B_OPTS = [
+  { val: 5, label: '5 — Muy alto' },
+  { val: 4, label: '4 — Alto' },
+  { val: 3, label: '3 — Medio' },
+  { val: 2, label: '2 — Bajo' },
+  { val: 1, label: '1 — Muy bajo / nulo' },
+];
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const cfg = localStorage.getItem('aserraderos_cfg');
+    if (cfg) {
+      CFG = JSON.parse(cfg);
+      document.getElementById('splash').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        initApp();
+      }, 400);
+    } else {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('config-screen').style.display = 'flex';
+    }
+  }, 900);
+});
+
+window.addEventListener('online', () => { isOnline = true; updateSyncBadge(); });
+window.addEventListener('offline', () => { isOnline = false; updateSyncBadge(); });
+
+function updateSyncBadge() {
+  const b = document.getElementById('sync-badge');
+  b.textContent = isOnline ? '● ONLINE' : '● OFFLINE';
+  b.className = 'badge-sync ' + (isOnline ? 'online' : 'offline');
+}
+
+function saveConfig() {
+  const nombre = document.getElementById('cfg-nombre').value.trim();
+  const url = document.getElementById('cfg-url').value.trim();
+  if (!nombre) { alert('Ingresá tu nombre'); return; }
+  CFG = { nombre, url };
+  localStorage.setItem('aserraderos_cfg', JSON.stringify(CFG));
+  document.getElementById('config-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
+function initApp() {
+  updateSyncBadge();
+  formData = {};
+  currentSection = 0;
+  buildNavTabs();
+  renderSection(0);
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════
+const SAVED_IDX = SECTIONS.length; // tab índice para "Guardadas"
+
+function buildNavTabs() {
+  const container = document.getElementById('nav-tabs');
+  container.innerHTML = '';
+  SECTIONS.forEach((s, i) => {
+    const t = document.createElement('div');
+    t.className = 'nav-tab' + (i === currentSection ? ' active' : '');
+    t.textContent = `${i + 1}  ${s}`;
+    t.onclick = () => { currentSection = i; buildNavTabs(); renderSection(i); scrollTop(); };
+    container.appendChild(t);
+  });
+  const tg = document.createElement('div');
+  tg.className = 'nav-tab' + (currentSection === SAVED_IDX ? ' active' : '');
+  tg.textContent = 'GUARDADAS';
+  tg.onclick = () => { currentSection = SAVED_IDX; buildNavTabs(); renderSection(SAVED_IDX); scrollTop(); };
+  container.appendChild(tg);
+
+  const active = container.querySelector('.active');
+  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function prevSection() {
+  if (currentSection > 0 && currentSection <= SECTIONS.length - 1) {
+    currentSection--; buildNavTabs(); renderSection(currentSection); scrollTop();
+  } else if (currentSection === SAVED_IDX) {
+    currentSection = SECTIONS.length - 1; buildNavTabs(); renderSection(currentSection); scrollTop();
+  }
+}
+function nextSection() {
+  if (currentSection < SECTIONS.length - 1) {
+    currentSection++; buildNavTabs(); renderSection(currentSection); scrollTop();
+  }
+}
+function scrollTop() { const m = document.querySelector('.main'); if (m) m.scrollTo(0, 0); window.scrollTo(0, 0); }
+
+function updateBottomNav() {
+  document.getElementById('btn-prev').disabled = currentSection === 0;
+  const isLastForm = currentSection === SECTIONS.length - 1;
+  const isSaved = currentSection === SAVED_IDX;
+  document.getElementById('btn-next').style.display = (isLastForm || isSaved) ? 'none' : 'flex';
+  document.getElementById('btn-submit').style.display = isLastForm ? 'flex' : 'none';
+  document.getElementById('btn-prev').style.display = isSaved ? 'none' : 'flex';
+  const pct = isSaved ? 100 : (currentSection / (SECTIONS.length - 1)) * 100;
+  document.getElementById('progress-fill').style.width = Math.min(pct, 100) + '%';
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function renderSection(idx) {
+  updateBottomNav();
+  const main = document.getElementById('main-content');
+
+  if (idx === SAVED_IDX) { renderSavedList(main); return; }
+
+  const sec = SCHEMA[idx];
+  if (!sec) { main.innerHTML = '<p style="color:var(--text2);margin-top:20px">Sección no disponible</p>'; return; }
+
+  main.innerHTML = `<div class="section-hdr"><h2>${sec.title}</h2><p>${sec.desc}</p></div>`;
+
+  // dots de navegación
+  const dots = document.createElement('div');
+  dots.className = 'dots';
+  SECTIONS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === idx ? ' active' : i < idx ? ' done' : '');
+    d.onclick = () => { currentSection = i; buildNavTabs(); renderSection(i); scrollTop(); };
+    dots.appendChild(d);
+  });
+  main.appendChild(dots);
+
+  sec.questions.forEach(q => {
+    const el = renderQuestion(q);
+    if (el) main.appendChild(el);
+  });
+}
+
+function shouldSkip(q) {
+  if (!q.skipIf) return false;
+  return formData[q.skipIf.id] === q.skipIf.val;
+}
+
+function renderQuestion(q) {
+  if (shouldSkip(q)) return null;
+
+  if (q.type === 'sectionlabel') {
+    const wrap = document.createElement('div');
+    const d = document.createElement('div');
+    d.className = 'sdiv';
+    d.textContent = q.label;
+    wrap.appendChild(d);
+    if (q.desc) {
+      const p = document.createElement('p');
+      p.style.cssText = 'font-size:0.72rem;color:var(--text2);margin:4px 0 12px;font-style:italic';
+      p.textContent = q.desc;
+      wrap.appendChild(p);
+    }
+    return wrap;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.id = 'card-' + q.id;
+
+  const label = document.createElement('div');
+  label.className = 'qlabel';
+  const qtext = document.createElement('div');
+  qtext.className = 'qtext';
+  qtext.textContent = q.label;
+  if (q.nota) {
+    const nota = document.createElement('div');
+    nota.className = 'qnota';
+    nota.textContent = q.nota;
+    qtext.appendChild(nota);
+  }
+  label.appendChild(qtext);
+  card.appendChild(label);
+
+  const body = document.createElement('div');
+  switch (q.type) {
+    case 'sel1':      body.appendChild(renderSel1(q)); break;
+    case 'sn':        body.appendChild(renderSN(q)); break;
+    case 'selm':      body.appendChild(renderSelm(q)); break;
+    case 'num':       body.appendChild(renderNum(q)); break;
+    case 'date':      body.appendChild(renderDate(q)); break;
+    case 'text1':     body.appendChild(renderText1(q)); break;
+    case 'textnote':  body.appendChild(renderTextNote(q)); break;
+    case 'textarea':  body.appendChild(renderTextarea(q)); break;
+    case 'calc':      body.appendChild(renderCalc(q)); break;
+    case 'catdisplay':body.appendChild(renderCatDisplay(q)); break;
+    case 'gps':       body.appendChild(renderGPS(q)); break;
+    case 'deptdrop':  body.appendChild(renderDeptDrop(q)); break;
+    case 'ord3':      body.appendChild(renderOrd(q, ORD3_OPTS)); break;
+    case 'ord3b':     body.appendChild(renderOrd(q, ORD3B_OPTS)); break;
+    case 'ord5b':     body.appendChild(renderOrd(q, ORD5B_OPTS)); break;
+    default: break;
+  }
+  card.appendChild(body);
+  return card;
+}
+
+function renderSel1(q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  q.options.forEach(opt => {
+    const item = document.createElement('div');
+    item.className = 'opt-item' + (formData[q.id] === opt ? ' selected' : '');
+    item.innerHTML = `<div class="opt-circle"></div><span class="opt-label">${opt}</span>`;
+    item.onclick = () => {
+      formData[q.id] = opt;
+      wrap.querySelectorAll('.opt-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      // re-render si hay campos dependientes (skipIf o dropdown dependiente)
+      const sec = SCHEMA[currentSection];
+      const affects = sec.questions.some(qq =>
+        (qq.skipIf && qq.skipIf.id === q.id) || (qq.dependsOn === q.id));
+      if (affects) renderSection(currentSection);
+    };
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+function renderSN(q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  ['Sí','No'].forEach(opt => {
+    const item = document.createElement('div');
+    item.className = 'opt-item' + (formData[q.id] === opt ? ' selected' : '');
+    item.innerHTML = `<div class="opt-circle"></div><span class="opt-label">${opt}</span>`;
+    item.onclick = () => {
+      formData[q.id] = opt;
+      wrap.querySelectorAll('.opt-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      const sec = SCHEMA[currentSection];
+      if (sec.questions.some(qq => qq.skipIf && qq.skipIf.id === q.id)) renderSection(currentSection);
+    };
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+function renderSelm(q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  if (!formData[q.id]) formData[q.id] = [];
+  q.options.forEach(opt => {
+    const item = document.createElement('div');
+    const sel = Array.isArray(formData[q.id]) && formData[q.id].includes(opt);
+    item.className = 'opt-item' + (sel ? ' selected' : '');
+    item.innerHTML = `<div class="opt-square"></div><span class="opt-label">${opt}</span>`;
+    item.onclick = () => {
+      if (!Array.isArray(formData[q.id])) formData[q.id] = [];
+      const i = formData[q.id].indexOf(opt);
+      if (i > -1) { formData[q.id].splice(i, 1); item.classList.remove('selected'); }
+      else { formData[q.id].push(opt); item.classList.add('selected'); }
+    };
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+function renderNum(q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'num-group';
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'num-input';
+  input.placeholder = '—';
+  input.inputMode = q.decimal ? 'decimal' : 'numeric';
+  if (formData[q.id] !== undefined && !isNaN(formData[q.id])) input.value = formData[q.id];
+  input.oninput = () => {
+    const v = q.decimal ? parseFloat(input.value) : parseInt(input.value);
+    formData[q.id] = isNaN(v) ? undefined : v;
+    recalcScores();
+  };
+  wrap.appendChild(input);
+  if (q.unit) {
+    const u = document.createElement('span');
+    u.className = 'num-unit';
+    u.textContent = q.unit;
+    wrap.appendChild(u);
+  }
+  return wrap;
+}
+
+function renderDate(q) {
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.className = 'num-input';
+  if (formData[q.id]) input.value = formData[q.id];
+  else { input.value = new Date().toISOString().split('T')[0]; formData[q.id] = input.value; }
+  input.oninput = () => { formData[q.id] = input.value; };
+  return input;
+}
+
+function renderText1(q) {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'num-input';
+  input.placeholder = '—';
+  if (formData[q.id]) input.value = formData[q.id];
+  input.oninput = () => { formData[q.id] = input.value; };
+  return input;
+}
+
+function renderTextNote(q) {
+  const wrap = document.createElement('div');
+  const input = document.createElement('textarea');
+  input.className = 'text-input';
+  input.rows = 2;
+  input.placeholder = 'Texto de referencia';
+  if (formData[q.id]) input.value = formData[q.id];
+  input.oninput = () => { formData[q.id] = input.value; };
+  const hint = document.createElement('div');
+  hint.className = 'text-hint';
+  hint.textContent = 'Campo de referencia — no se usa en el análisis comparativo';
+  wrap.appendChild(input);
+  wrap.appendChild(hint);
+  return wrap;
+}
+
+function renderTextarea(q) {
+  const ta = document.createElement('textarea');
+  ta.className = 'text-input';
+  ta.rows = 3;
+  ta.placeholder = 'Observaciones...';
+  if (formData[q.id]) ta.value = formData[q.id];
+  ta.oninput = () => { formData[q.id] = ta.value; };
+  return ta;
+}
+
+function renderDeptDrop(q) {
+  const prov = formData[q.dependsOn];
+  const sel = document.createElement('select');
+  sel.className = 'sel-drop';
+  if (!prov) {
+    sel.innerHTML = `<option value="">Seleccioná primero la provincia</option>`;
+    sel.disabled = true;
+    return sel;
+  }
+  const list = DEPARTAMENTOS[prov] || [];
+  let opts = `<option value="">— Seleccionar departamento —</option>`;
+  list.forEach(d => {
+    opts += `<option value="${d}"${formData[q.id] === d ? ' selected' : ''}>${d}</option>`;
+  });
+  sel.innerHTML = opts;
+  sel.onchange = () => { formData[q.id] = sel.value; };
+  return sel;
+}
+
+function renderCalc(q) {
+  const wrap = document.createElement('div');
+  const disp = document.createElement('div');
+  disp.className = 'calc-display';
+  disp.id = 'calc-' + q.id;
+  const val = getCalcValue(q);
+  disp.innerHTML = `<span>${q.label}</span><span class="calc-val">${val !== null ? val : '—'} <small>${q.unit || ''}</small></span>`;
+  const f = document.createElement('div');
+  f.className = 'calc-formula';
+  f.textContent = '⟳ ' + q.formula;
+  wrap.appendChild(disp);
+  wrap.appendChild(f);
+  return wrap;
+}
+
+const EV_FIELDS = ['ev_subprod','ev_calidad','ev_capacidad','ev_astillado','ev_logistica','ev_abast','ev_interes'];
+
+function getScore100() {
+  const vals = EV_FIELDS.map(k => parseInt(formData[k]));
+  if (vals.some(isNaN)) return null;
+  const sum = vals.reduce((a,b) => a+b, 0); // 0..21
+  return Math.round(sum / 21 * 100);
+}
+
+function categoriaFromScore(s) {
+  if (s === null) return null;
+  if (s >= 70) return 'A';
+  if (s >= 45) return 'B';
+  if (s >= 25) return 'C';
+  return 'D';
+}
+
+function getCalcValue(q) {
+  if (q.id === 'uso_capacidad') {
+    const cap = parseFloat(formData['cap_instalada']);
+    const prod = parseFloat(formData['prod_aserrada']);
+    if (cap && prod) { const v = (prod/cap*100).toFixed(1); formData[q.id] = parseFloat(v); return v; }
+    return null;
+  }
+  if (q.id === 'ev_score') {
+    const s = getScore100();
+    if (s === null) return null;
+    formData['ev_score'] = s;
+    return s;
+  }
+  return null;
+}
+
+const CAT_DESC = {
+  'A': 'Apto — suministro inmediato o de corto plazo',
+  'B': 'Apto con inversión menor',
+  'C': 'Requiere inversión mayor',
+  'D': 'No apto en plazo razonable'
+};
+
+function renderCatDisplay(q) {
+  const wrap = document.createElement('div');
+  wrap.id = 'catdisp-wrap';
+  wrap.appendChild(buildCatInner());
+  return wrap;
+}
+function buildCatInner() {
+  const s = getScore100();
+  let cat = categoriaFromScore(s);
+  const override = formData['ev_cat_override'];
+  if (override && override.startsWith('Forzar')) cat = override.replace('Forzar ', '');
+  formData['ev_categoria'] = cat || '';
+  const box = document.createElement('div');
+  if (!cat) {
+    box.className = 'cat-display';
+    box.innerHTML = `<div class="cat-letter" style="color:var(--text3)">—</div><div class="cat-desc" style="color:var(--text2)">Completá los 7 componentes de aptitud</div>`;
+    return box;
+  }
+  box.className = 'cat-display cat-' + cat;
+  box.innerHTML = `<div class="cat-letter">${cat}</div>
+    <div class="cat-desc">${CAT_DESC[cat]}</div>
+    <div class="cat-score">Score: ${s} / 100${override && override.startsWith('Forzar') ? ' · (ajuste manual)' : ''}</div>`;
+  return box;
+}
+
+function recalcScores() {
+  ['uso_capacidad','ev_score'].forEach(id => {
+    const el = document.getElementById('calc-' + id);
+    if (!el) return;
+    const q = findQuestion(id);
+    if (!q) return;
+    const val = getCalcValue(q);
+    const valEl = el.querySelector('.calc-val');
+    if (valEl) valEl.innerHTML = `${val !== null ? val : '—'} <small>${q.unit || ''}</small>`;
+  });
+  const cw = document.getElementById('catdisp-wrap');
+  if (cw) { cw.innerHTML = ''; cw.appendChild(buildCatInner()); }
+}
+
+function findQuestion(id) {
+  for (const sec of Object.values(SCHEMA)) {
+    const q = sec.questions.find(q => q.id === id);
+    if (q) return q;
+  }
+  return null;
+}
+
+function renderGPS(q) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+
+  const fields = document.createElement('div');
+  fields.style.cssText = 'display:flex;gap:8px;align-items:flex-end';
+
+  function mkField(labelTxt, key, otherKeyGetter) {
+    const w = document.createElement('div');
+    w.style.cssText = 'flex:1;display:flex;flex-direction:column;gap:4px';
+    const l = document.createElement('label');
+    l.style.cssText = 'font-size:0.66rem;color:var(--text2);font-family:var(--mono)';
+    l.textContent = labelTxt;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.step = 'any'; inp.className = 'num-input'; inp.placeholder = '—';
+    if (formData[key]) inp.value = formData[key];
+    inp.oninput = () => { formData[key] = inp.value; formData['gps_coords'] = (formData['gps_lat']||'') + ',' + (formData['gps_lon']||''); };
+    w.appendChild(l); w.appendChild(inp);
+    return { w, inp };
+  }
+  const lat = mkField('LATITUD', 'gps_lat');
+  const lon = mkField('LONGITUD', 'gps_lon');
+  fields.appendChild(lat.w); fields.appendChild(lon.w);
+
+  const btn = document.createElement('button');
+  btn.className = 'gps-btn';
+  btn.textContent = 'CAPTURAR UBICACIÓN ACTUAL';
+  const status = document.createElement('div');
+  status.style.cssText = 'font-size:0.72rem;font-family:var(--mono);color:var(--text2);text-align:center;min-height:18px';
+
+  btn.onclick = () => {
+    if (!navigator.geolocation) { status.textContent = 'GPS no disponible en este dispositivo'; status.style.color = 'var(--danger)'; return; }
+    btn.textContent = 'Obteniendo ubicación...'; btn.disabled = true; status.textContent = '';
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const la = pos.coords.latitude.toFixed(6);
+        const lo = pos.coords.longitude.toFixed(6);
+        const acc = Math.round(pos.coords.accuracy);
+        lat.inp.value = la; lon.inp.value = lo;
+        formData['gps_lat'] = la; formData['gps_lon'] = lo; formData['gps_coords'] = la + ',' + lo;
+        btn.textContent = 'UBICACIÓN CAPTURADA ✓';
+        btn.style.background = 'var(--bg2)'; btn.style.border = '1px solid var(--accent)'; btn.style.color = 'var(--accent)';
+        status.textContent = `Precisión: ±${acc} m`; status.style.color = 'var(--accent)';
+        btn.disabled = false;
+      },
+      (err) => {
+        btn.textContent = 'CAPTURAR UBICACIÓN ACTUAL'; btn.disabled = false; status.style.color = 'var(--danger)';
+        if (err.code === 1) status.textContent = 'Permiso denegado — activá el GPS en ajustes';
+        else if (err.code === 2) status.textContent = 'No se pudo obtener la ubicación';
+        else status.textContent = 'Tiempo agotado — intentá de nuevo';
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
+
+  wrap.appendChild(fields); wrap.appendChild(btn); wrap.appendChild(status);
+  return wrap;
+}
+
+function renderOrd(q, opts) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  opts.forEach(opt => {
+    const item = document.createElement('div');
+    const cur = formData[q.id];
+    item.className = 'opt-item' + (cur === opt.val || cur === String(opt.val) ? ' selected' : '');
+    item.innerHTML = `<div class="opt-circle"></div><span class="opt-label">${opt.label}</span>`;
+    item.onclick = () => {
+      formData[q.id] = opt.val;
+      wrap.querySelectorAll('.opt-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      recalcScores();
+    };
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVED LIST
+// ═══════════════════════════════════════════════════════════
+function getSaved() { try { return JSON.parse(localStorage.getItem('aserraderos_saved') || '[]'); } catch { return []; } }
+function setSaved(list) { localStorage.setItem('aserraderos_saved', JSON.stringify(list)); }
+
+function saveLocal() {
+  const list = getSaved();
+  const id = Date.now();
+  const nombre_est = formData['razon_social'] || 'Sin nombre';
+  const fecha = formData['fecha'] || '—';
+  const cat = formData['ev_categoria'] || '—';
+  list.push({ id, nombre_est, fecha, categoria: cat, encuestador: CFG.nombre, data: { ...formData } });
+  setSaved(list);
+  showToast('Guardado localmente');
+}
+
+function renderSavedList(main) {
+  const list = getSaved();
+  main.innerHTML = `<div class="section-hdr"><h2>FICHAS GUARDADAS</h2><p>${list.length} ficha(s) en este dispositivo</p></div>`;
+  if (list.length === 0) {
+    main.innerHTML += `<p style="color:var(--text2);font-size:0.85rem;margin-top:16px">No hay fichas guardadas aún.</p>`;
+    return;
+  }
+  list.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'saved-item';
+    div.innerHTML = `
+      <div class="saved-item-info">
+        <h4>${item.nombre_est}</h4>
+        <p>${item.fecha}  ·  ${item.encuestador}  ·  Cat. ${item.categoria || '—'}</p>
+      </div>
+      <div class="saved-item-btns">
+        <button class="btn-sm btn-sm-accent" onclick="syncItem(${idx})">SINCRONIZAR</button>
+        <button class="btn-sm btn-sm-warn" onclick="deleteItem(${idx})">✕</button>
+      </div>`;
+    main.appendChild(div);
+  });
+  const syncAllBtn = document.createElement('button');
+  syncAllBtn.className = 'btn btn-next';
+  syncAllBtn.style.cssText = 'width:100%;margin-top:16px';
+  syncAllBtn.textContent = '↑ SINCRONIZAR TODAS';
+  syncAllBtn.onclick = syncAll;
+  main.appendChild(syncAllBtn);
+}
+
+function deleteItem(idx) {
+  if (!confirm('¿Eliminar esta ficha?')) return;
+  const list = getSaved();
+  list.splice(idx, 1);
+  setSaved(list);
+  renderSavedList(document.getElementById('main-content'));
+}
+
+// ═══════════════════════════════════════════════════════════
+// SYNC / SUBMIT
+// ═══════════════════════════════════════════════════════════
+function flatten(data) {
+  const out = {};
+  for (const k in data) {
+    const v = data[k];
+    out[k] = Array.isArray(v) ? v.join(' | ') : v;
+  }
+  return out;
+}
+
+async function sendToSheets(data) {
+  if (!CFG.url) throw new Error('URL de Google Apps Script no configurada');
+  await fetch(CFG.url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ encuestador: CFG.nombre, timestamp: new Date().toISOString(), ...flatten(data) })
+  });
+  return true;
+}
+
+async function syncItem(idx) {
+  if (!isOnline) { showToast('Sin conexión — guardado localmente'); return; }
+  if (!CFG.url) { showToast('No hay URL de sincronización configurada'); return; }
+  const list = getSaved();
+  try {
+    await sendToSheets(list[idx].data);
+    list.splice(idx, 1);
+    setSaved(list);
+    showToast('Sincronizado');
+    renderSavedList(document.getElementById('main-content'));
+  } catch (e) { showToast('Error al sincronizar — se reintentará'); }
+}
+
+async function syncAll() {
+  if (!isOnline) { showToast('Sin conexión'); return; }
+  if (!CFG.url) { showToast('No hay URL de sincronización configurada'); return; }
+  const list = getSaved();
+  let ok = 0;
+  for (const item of list) { try { await sendToSheets(item.data); ok++; } catch {} }
+  setSaved([]);
+  showToast(`${ok} ficha(s) sincronizadas`);
+  renderSavedList(document.getElementById('main-content'));
+}
+
+async function submitForm() {
+  saveLocal();
+  formData = {};
+  if (isOnline && CFG.url) {
+    const list = getSaved();
+    const last = list[list.length - 1];
+    try {
+      await sendToSheets(last.data);
+      list.splice(list.length - 1, 1);
+      setSaved(list);
+      showSuccessModal(true);
+    } catch { showSuccessModal(false); }
+  } else {
+    showSuccessModal(false);
+  }
+}
+
+function showSuccessModal(synced) {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-icon">${synced ? '✓' : '⤓'}</div>
+      <h3>${synced ? 'FICHA ENVIADA' : 'GUARDADA LOCALMENTE'}</h3>
+      <p>${synced
+        ? 'Los datos se registraron correctamente en Google Sheets.'
+        : 'La ficha quedó guardada en el dispositivo. Se sincronizará cuando haya conexión.'}</p>
+      <div class="modal-btns">
+        <button class="btn btn-next" style="flex:1" onclick="this.closest('.overlay').remove(); currentSection=0; buildNavTabs(); renderSection(0); scrollTop();">NUEVA FICHA</button>
+        <button class="btn btn-prev" style="flex:1" onclick="this.closest('.overlay').remove(); currentSection=${SAVED_IDX}; buildNavTabs(); renderSection(${SAVED_IDX});">VER GUARDADAS</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let toastTimeout;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
