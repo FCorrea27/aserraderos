@@ -539,6 +539,24 @@ const ORD5B_OPTS = [
 ];
 
 // ═══════════════════════════════════════════════════════════
+// IDENTIDAD DE DISPOSITIVO Y FICHA (anti-duplicados / multi-relevador)
+// ═══════════════════════════════════════════════════════════
+function getDeviceId() {
+  let d = localStorage.getItem('aserraderos_device_id');
+  if (!d) {
+    // identificador aleatorio único por dispositivo, generado una sola vez
+    const rnd = (Math.random().toString(36).slice(2, 8)) + (Math.random().toString(36).slice(2, 6));
+    d = rnd.slice(0, 8);
+    localStorage.setItem('aserraderos_device_id', d);
+  }
+  return d;
+}
+function newFichaId() {
+  // [dispositivo]-[timestamp ms]-[aleatorio] → único aunque dos teléfonos estén offline
+  return getDeviceId() + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+}
+
+// ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
@@ -1074,11 +1092,14 @@ function setSaved(list) { localStorage.setItem('aserraderos_saved', JSON.stringi
 
 function saveLocal() {
   const list = getSaved();
-  const id = Date.now();
+  const id = newFichaId();
   const nombre_est = formData['razon_social'] || 'Sin nombre';
   const fecha = formData['fecha'] || '—';
   const cat = formData['ev_categoria'] || '—';
-  list.push({ id, nombre_est, fecha, categoria: cat, encuestador: CFG.nombre, data: { ...formData } });
+  // ficha_id viaja dentro de los datos para que el backend deduplique
+  formData['ficha_id'] = id;
+  formData['device_id'] = getDeviceId();
+  list.push({ id, nombre_est, fecha, categoria: cat, encuestador: CFG.nombre, syncing: false, data: { ...formData } });
   setSaved(list);
   showToast('Guardado localmente');
 }
@@ -1093,10 +1114,11 @@ function renderSavedList(main) {
   list.forEach((item, idx) => {
     const div = document.createElement('div');
     div.className = 'saved-item';
+    const syncingTxt = item.syncing ? ' · enviando...' : '';
     div.innerHTML = `
       <div class="saved-item-info">
         <h4>${item.nombre_est}</h4>
-        <p>${item.fecha}  ·  ${item.encuestador}  ·  Cat. ${item.categoria || '—'}</p>
+        <p>${item.fecha}  ·  ${item.encuestador}  ·  Cat. ${item.categoria || '—'}${syncingTxt}</p>
       </div>
       <div class="saved-item-btns">
         <button class="btn-sm btn-sm-accent" onclick="syncItem(${idx})">SINCRONIZAR</button>
@@ -1106,6 +1128,7 @@ function renderSavedList(main) {
   });
   const syncAllBtn = document.createElement('button');
   syncAllBtn.className = 'btn btn-next';
+  syncAllBtn.id = 'btn-sync-all';
   syncAllBtn.style.cssText = 'width:100%;margin-top:16px';
   syncAllBtn.textContent = '↑ SINCRONIZAR TODAS';
   syncAllBtn.onclick = syncAll;
@@ -1123,6 +1146,8 @@ function deleteItem(idx) {
 // ═══════════════════════════════════════════════════════════
 // SYNC / SUBMIT
 // ═══════════════════════════════════════════════════════════
+let syncInProgress = false; // evita envíos concurrentes / doble toque
+
 function flatten(data) {
   const out = {};
   for (const k in data) {
@@ -1143,42 +1168,92 @@ async function sendToSheets(data) {
   return true;
 }
 
+function setSyncButtonsDisabled(disabled, label) {
+  document.querySelectorAll('.btn-sm-accent, #btn-sync-all').forEach(b => {
+    b.disabled = disabled;
+    b.style.opacity = disabled ? '0.5' : '1';
+  });
+  const all = document.getElementById('btn-sync-all');
+  if (all && label) all.textContent = label;
+}
+
 async function syncItem(idx) {
+  if (syncInProgress) return;
   if (!isOnline) { showToast('Sin conexión — guardado localmente'); return; }
   if (!CFG.url) { showToast('No hay URL de sincronización configurada'); return; }
   const list = getSaved();
+  const item = list[idx];
+  if (!item || item.syncing) return;
+
+  syncInProgress = true;
+  item.syncing = true;
+  setSaved(list);
+  setSyncButtonsDisabled(true);
+
   try {
-    await sendToSheets(list[idx].data);
-    list.splice(idx, 1);
-    setSaved(list);
+    await sendToSheets(item.data);
+    // borrar de la cola por ficha_id (no por índice, que puede haber cambiado)
+    const fresh = getSaved().filter(it => it.id !== item.id);
+    setSaved(fresh);
     showToast('Sincronizado');
+  } catch (e) {
+    const fresh = getSaved();
+    const t = fresh.find(it => it.id === item.id);
+    if (t) t.syncing = false;
+    setSaved(fresh);
+    showToast('Error al sincronizar — se reintentará');
+  } finally {
+    syncInProgress = false;
+    setSyncButtonsDisabled(false, '↑ SINCRONIZAR TODAS');
     renderSavedList(document.getElementById('main-content'));
-  } catch (e) { showToast('Error al sincronizar — se reintentará'); }
+  }
 }
 
 async function syncAll() {
+  if (syncInProgress) return;
   if (!isOnline) { showToast('Sin conexión'); return; }
   if (!CFG.url) { showToast('No hay URL de sincronización configurada'); return; }
-  const list = getSaved();
+
+  syncInProgress = true;
+  setSyncButtonsDisabled(true, 'Sincronizando...');
+
   let ok = 0;
-  for (const item of list) { try { await sendToSheets(item.data); ok++; } catch {} }
-  setSaved([]);
+  const pending = getSaved();
+  for (const item of pending) {
+    try {
+      await sendToSheets(item.data);
+      // remover esta ficha por id inmediatamente tras enviarla
+      const fresh = getSaved().filter(it => it.id !== item.id);
+      setSaved(fresh);
+      ok++;
+    } catch {
+      // si falla, la ficha queda en la cola para reintento
+    }
+  }
+
+  syncInProgress = false;
+  setSyncButtonsDisabled(false, '↑ SINCRONIZAR TODAS');
   showToast(`${ok} ficha(s) sincronizadas`);
   renderSavedList(document.getElementById('main-content'));
 }
 
 async function submitForm() {
+  if (syncInProgress) return;
   saveLocal();
+  const justSaved = getSaved()[getSaved().length - 1];
   formData = {};
-  if (isOnline && CFG.url) {
-    const list = getSaved();
-    const last = list[list.length - 1];
+  if (isOnline && CFG.url && justSaved) {
+    syncInProgress = true;
     try {
-      await sendToSheets(last.data);
-      list.splice(list.length - 1, 1);
-      setSaved(list);
+      await sendToSheets(justSaved.data);
+      const fresh = getSaved().filter(it => it.id !== justSaved.id);
+      setSaved(fresh);
       showSuccessModal(true);
-    } catch { showSuccessModal(false); }
+    } catch {
+      showSuccessModal(false);
+    } finally {
+      syncInProgress = false;
+    }
   } else {
     showSuccessModal(false);
   }
