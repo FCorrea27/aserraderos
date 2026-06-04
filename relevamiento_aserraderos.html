@@ -556,6 +556,19 @@ function newFichaId() {
   return getDeviceId() + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
 }
 
+// Correlativo de N° de ficha, por dispositivo (autocompletado, editable)
+function getNextFichaNum() {
+  const n = parseInt(localStorage.getItem('aserraderos_ficha_counter') || '0');
+  return n + 1;
+}
+function bumpFichaNum(used) {
+  // avanza el contador para que la próxima ficha no repita número
+  const cur = parseInt(localStorage.getItem('aserraderos_ficha_counter') || '0');
+  const u = parseInt(used);
+  const next = Math.max(cur + 1, isNaN(u) ? 0 : u);
+  localStorage.setItem('aserraderos_ficha_counter', String(next));
+}
+
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
@@ -823,6 +836,10 @@ function renderNum(q) {
   input.className = 'num-input';
   input.placeholder = '—';
   input.inputMode = q.decimal ? 'decimal' : 'numeric';
+  // ficha_num: si está vacío, autocompletar con el correlativo del dispositivo (editable)
+  if (q.id === 'ficha_num' && (formData[q.id] === undefined || formData[q.id] === '' || isNaN(formData[q.id]))) {
+    formData[q.id] = getNextFichaNum();
+  }
   if (formData[q.id] !== undefined && !isNaN(formData[q.id])) input.value = formData[q.id];
   input.oninput = () => {
     const v = q.decimal ? parseFloat(input.value) : parseInt(input.value);
@@ -835,6 +852,15 @@ function renderNum(q) {
     u.className = 'num-unit';
     u.textContent = q.unit;
     wrap.appendChild(u);
+  }
+  if (q.id === 'ficha_num') {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:0.68rem;color:var(--text3);margin-top:6px;font-style:italic;width:100%';
+    hint.textContent = 'Número sugerido automáticamente. Podés modificarlo si lo necesitás.';
+    const outer = document.createElement('div');
+    outer.appendChild(wrap);
+    outer.appendChild(hint);
+    return outer;
   }
   return wrap;
 }
@@ -1099,6 +1125,8 @@ function saveLocal() {
   // ficha_id viaja dentro de los datos para que el backend deduplique
   formData['ficha_id'] = id;
   formData['device_id'] = getDeviceId();
+  // avanzar el correlativo de N° de ficha para la próxima
+  bumpFichaNum(formData['ficha_num']);
   list.push({ id, nombre_est, fecha, categoria: cat, encuestador: CFG.nombre, syncing: false, data: { ...formData } });
   setSaved(list);
   showToast('Guardado localmente');
