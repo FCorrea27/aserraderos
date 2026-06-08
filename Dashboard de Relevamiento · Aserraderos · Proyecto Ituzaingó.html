@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de Relevamiento · Aserraderos · Proyecto Ituzaingó</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0F2E1E; --bg2:#1B392D; --bg3:#2B6046; --card:#173524; --border:#2B6046;
+  --accent:#59A77F; --accent2:#9ADAB7; --warn:#d6b15c; --danger:#e07050;
+  --text:#FFFFFF; --text2:#CCE6D9; --text3:#3A8B6B; --fill:#EBF4EF;
+  --mono:'Calibri','Segoe UI',sans-serif; --sans:'Calibri','Segoe UI',sans-serif;
+  --catA:#9ADAB7; --catB:#59A77F; --catC:#d6b15c; --catD:#e07050;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.topbar svg{width:34px;height:34px;flex-shrink:0}
+.topbar-t{line-height:1.3}
+.topbar-logo{font-family:var(--mono);font-size:0.8rem;color:var(--accent);letter-spacing:0.05em}
+.topbar-sub{font-size:0.7rem;color:var(--text2)}
+.topbar-right{margin-left:auto;font-size:0.74rem;color:var(--text2);font-family:var(--mono)}
+
+.loader{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.file-label{background:var(--bg3);color:var(--text);padding:9px 14px;border-radius:6px;font-family:var(--mono);font-size:0.74rem;cursor:pointer;border:1px solid var(--border)}
+.file-label input{display:none}
+.loader .sep{color:var(--text3);font-size:0.8rem}
+.url-in{flex:1;min-width:220px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-family:var(--mono);font-size:0.74rem}
+.btn{background:var(--accent);color:var(--bg);border:none;border-radius:6px;padding:9px 16px;font-family:var(--mono);font-size:0.74rem;font-weight:600;cursor:pointer}
+.btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 14px;overflow-x:auto}
+.tab{padding:12px 18px;font-family:var(--mono);font-size:0.76rem;letter-spacing:0.03em;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.wrap{padding:20px;max-width:1280px;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.metric-v{font-family:var(--mono);font-size:1.9rem;font-weight:700;color:var(--accent)}
+.metric-l{font-size:0.78rem;color:var(--text2);margin-top:4px}
+.metric-s{font-size:0.68rem;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+.card-title{font-family:var(--mono);font-size:0.82rem;color:var(--accent);letter-spacing:0.03em;margin-bottom:14px}
+.chart-box{position:relative;height:260px}
+
+.cat-badge{display:inline-block;font-family:var(--mono);font-size:0.74rem;font-weight:700;padding:3px 10px;border-radius:14px;min-width:54px;text-align:center}
+.cat-A{background:#0d3325;color:var(--catA);border:1px solid var(--catA)}
+.cat-B{background:#0a2e20;color:var(--catB);border:1px solid var(--catB)}
+.cat-C{background:#2a2200;color:var(--catC);border:1px solid var(--catC)}
+.cat-D{background:#2a0d0a;color:var(--catD);border:1px solid var(--catD)}
+.cat-x{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+
+table{width:100%;border-collapse:collapse;font-size:0.8rem}
+th{text-align:left;padding:10px 8px;font-family:var(--mono);font-size:0.68rem;color:var(--text3);border-bottom:1px solid var(--border);letter-spacing:0.03em;cursor:pointer;white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid #1f4332;color:var(--text2)}
+tr:hover td{background:#14402e}
+.rk-name{color:var(--text);font-weight:600}
+.rk-score{font-family:var(--mono);font-weight:600;color:var(--accent)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:6px 12px;border-radius:16px;font-family:var(--mono);font-size:0.7rem;cursor:pointer;border:1px solid var(--border);color:var(--text2);background:var(--bg)}
+.chip.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty svg{width:48px;height:48px;opacity:0.4;margin-bottom:14px}
+.empty h3{font-family:var(--mono);font-size:0.9rem;color:var(--text2);margin-bottom:8px}
+.empty p{font-size:0.8rem;max-width:420px;margin:0 auto;line-height:1.5}
+
+.sel{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-family:var(--mono);font-size:0.76rem}
+.cmp-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.cmp-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px}
+.cmp-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1f4332;font-size:0.78rem}
+.cmp-row .k{color:var(--text3)}
+.cmp-row .v{color:var(--text);font-family:var(--mono)}
+
+.maplink{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:0.74rem}
+.maplink:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="30" fill="none" stroke="#59A77F" stroke-width="6"/>
+    <g fill="#59A77F">
+      <polygon points="50,12 57,22 43,22"/><polygon points="78,24 82,36 69,32"/>
+      <polygon points="88,50 80,59 80,41"/><polygon points="78,76 69,68 82,64"/>
+      <polygon points="50,88 43,78 57,78"/><polygon points="22,76 31,68 18,64"/>
+      <polygon points="12,50 20,41 20,59"/><polygon points="22,24 31,32 18,36"/>
+    </g>
+    <circle cx="50" cy="50" r="8" fill="#59A77F"/>
+  </svg>
+  <div class="topbar-t">
+    <div class="topbar-logo">DASHBOARD DE RELEVAMIENTO · ASERRADEROS</div>
+    <div class="topbar-sub">Proyecto Ituzaingó</div>
+  </div>
+  <div class="topbar-right" id="n-total">Sin datos cargados</div>
+</div>
+
+<div class="loader">
+  <label class="file-label">Seleccionar archivo CSV
+    <input type="file" accept=".csv" onchange="loadCSV(this)">
+  </label>
+  <span class="sep">ó</span>
+  <input class="url-in" id="sheet-url" placeholder="URL de la Sheet publicada como CSV (Archivo → Compartir → Publicar en la web → CSV)">
+  <button class="btn" onclick="loadFromSheets()">CARGAR</button>
+  <button class="btn btn-ghost" onclick="loadDemo()">Ver con datos de ejemplo</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="resumen" onclick="switchTab('resumen')">RESUMEN</div>
+  <div class="tab" data-tab="ranking" onclick="switchTab('ranking')">RANKING</div>
+  <div class="tab" data-tab="abastecimiento" onclick="switchTab('abastecimiento')">ABASTECIMIENTO</div>
+  <div class="tab" data-tab="comparar" onclick="switchTab('comparar')">COMPARAR</div>
+  <div class="tab" data-tab="mapa" onclick="switchTab('mapa')">MAPA</div>
+</div>
+
+<div class="wrap">
+
+  <!-- RESUMEN -->
+  <div class="page active" id="page-resumen">
+    <div id="resumen-content"></div>
+  </div>
+
+  <!-- RANKING -->
+  <div class="page" id="page-ranking">
+    <div class="card">
+      <div class="card-title">RANKING DE APTITUD PARA SUMINISTRO DE CHIPS A CELULOSA</div>
+      <div class="filters" id="rank-filters"></div>
+      <div style="overflow-x:auto"><table id="rank-table"></table></div>
+    </div>
+  </div>
+
+  <!-- ABASTECIMIENTO -->
+  <div class="page" id="page-abastecimiento">
+    <div id="abast-content"></div>
+  </div>
+
+  <!-- COMPARAR -->
+  <div class="page" id="page-comparar">
+    <div class="card">
+      <div class="card-title">COMPARAR DOS ASERRADEROS</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <select class="sel" id="cmp-a" onchange="renderCompare()"></select>
+        <select class="sel" id="cmp-b" onchange="renderCompare()"></select>
+      </div>
+      <div id="cmp-out"></div>
+    </div>
+  </div>
+
+  <!-- MAPA -->
+  <div class="page" id="page-mapa">
+    <div class="card">
+      <div class="card-title">UBICACIONES RELEVADAS</div>
+      <div id="mapa-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let DATA = [];
+let CHARTS = {};
+let rankFilter = 'todos';
+
+// URL CSV de la Sheet (publicada en la web). Auto-carga al abrir.
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTmzDjjBrObAFbr2HojWY8fx-pgAwFNH0skZuTfUJ_2W3pULf6riLMMZLjMlWicwzcT-YgSzCCshTUh/pub?gid=923431500&single=true&output=csv';
+
+// ═══ SCORE / CATEGORÍA (esquema nuevo 0–100, A/B/C/D) ═══
+function catFromScore(s){
+  const n = parseFloat(s);
+  if (isNaN(n)) return null;
+  if (n >= 70) return 'A';
+  if (n >= 45) return 'B';
+  if (n >= 25) return 'C';
+  return 'D';
+}
+function catOf(d){
+  // usa ev_categoria si viene; si no, la deriva del score
+  const c = (d.ev_categoria||'').trim().toUpperCase();
+  if (['A','B','C','D'].includes(c)) return c;
+  return catFromScore(d.ev_score);
+}
+const CAT_DESC = {A:'Apto inmediato',B:'Apto c/ inversión menor',C:'Requiere inversión mayor',D:'No apto'};
+function catBadge(c){
+  if(!c) return `<span class="cat-badge cat-x">—</span>`;
+  return `<span class="cat-badge cat-${c}">${c}</span>`;
+}
+const CAT_COLORS = {A:'#9ADAB7',B:'#59A77F',C:'#d6b15c',D:'#e07050'};
+
+// ═══ CARGA ═══
+function loadCSV(input){
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => parseCSV(e.target.result);
+  r.readAsText(f);
+}
+async function loadFromSheets(forcedUrl){
+  const url = (forcedUrl || document.getElementById('sheet-url').value.trim());
+  if(!url){ alert('Pegá la URL de la Sheet publicada como CSV.'); return; }
+  try{
+    const res = await fetch(url);
+    const text = await res.text();
+    parseCSV(text);
+    try{ localStorage.setItem('dash_sheet_url', url); }catch(e){}
+  }catch(e){
+    if(!forcedUrl){
+      alert('No se pudo cargar la Sheet. Verificá que esté publicada en la web como CSV:\n\nArchivo → Compartir → Publicar en la web → (hoja) → CSV.');
+    }
+  }
+}
+function parseCSVLine(line){
+  // parser simple con soporte de comillas
+  const out=[]; let cur=''; let q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch === '"'){ if(q && line[i+1]==='"'){cur+='"';i++;} else q=!q; }
+    else if(ch === ',' && !q){ out.push(cur); cur=''; }
+    else cur+=ch;
+  }
+  out.push(cur);
+  return out;
+}
+function parseCSV(text){
+  const lines = text.replace(/\r/g,'').trim().split('\n');
+  if(lines.length < 2){ alert('El archivo no tiene datos (solo encabezado o vacío).'); return; }
+  const headers = parseCSVLine(lines[0]).map(h=>h.trim());
+  DATA = lines.slice(1).map(line=>{
+    const vals = parseCSVLine(line);
+    const o = {};
+    headers.forEach((h,i)=> o[h] = (vals[i]||'').trim());
+    return o;
+  }).filter(d => Object.values(d).some(v=>v!==''));
+  refreshAll();
+}
+
+// ═══ DEMO ═══
+function loadDemo(){
+  const mk = (n,prov,dep,score,prod,vol)=>({
+    razon_social:n, provincia:prov, departamento:dep, localidad:dep,
+    ev_score:String(score), ev_categoria:catFromScore(score),
+    produce_chips:prod, vol_disponible: vol>0?'Sí, disponible de inmediato':'No disponible actualmente',
+    vol_potencial:String(vol), interes_proyecto: score>=60?'Alto':(score>=40?'Medio':'Bajo'),
+    origen_madera:'Mixto (propio + compra)', radio_abast:'50–100 km',
+    rollizos_mes:String(Math.round(vol*3.5)), vol_subprod_limpio:String(Math.round(vol*0.8)),
+    gps_lat:String(-27.5-Math.random()), gps_lon:String(-55.8-Math.random()),
+    ev_proximo_paso: score>=60?'Solicitar muestras de chip':'Mantener en seguimiento',
+    encuestador:'Demo', fecha:'2026-06-04'
+  });
+  DATA = [
+    mk('Aserradero El Pinar','Misiones','Eldorado',82,'Sí',1200),
+    mk('Maderas del Norte','Corrientes','Santo Tomé',68,'No',600),
+    mk('Forestal Ituzaingó','Corrientes','Ituzaingó',74,'Sí',900),
+    mk('Aserradero San Javier','Misiones','San Javier',51,'No',300),
+    mk('Maderera Concepción','Corrientes','Concepción',38,'No',150),
+    mk('Pino Verde SA','Misiones','Montecarlo',61,'Sí',520),
+    mk('Aserradero Goya','Corrientes','Goya',22,'No',0),
+  ];
+  document.getElementById('sheet-url').value='';
+  refreshAll();
+}
+
+// ═══ TABS ═══
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===t));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+t).classList.add('active');
+}
+
+// ═══ REFRESH ═══
+function refreshAll(){
+  document.getElementById('n-total').textContent = DATA.length + ' aserraderos';
+  renderResumen();
+  renderRankingFilters();
+  renderRanking();
+  renderAbastecimiento();
+  renderCompareSelects();
+  renderMapa();
+}
+
+function num(d,k){ const v=parseFloat(d[k]); return isNaN(v)?0:v; }
+
+// ═══ RESUMEN ═══
+function renderResumen(){
+  const el = document.getElementById('resumen-content');
+  if(!DATA.length){ el.innerHTML = emptyState(); return; }
+
+  const scores = DATA.map(d=>num(d,'ev_score')).filter(n=>n>0);
+  const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(0) : '—';
+  const cats = {A:0,B:0,C:0,D:0};
+  DATA.forEach(d=>{ const c=catOf(d); if(c) cats[c]++; });
+  const aptos = cats.A + cats.B;
+  const producenChips = DATA.filter(d=>(d.produce_chips||'').trim()==='Sí').length;
+  const volTotal = DATA.reduce((s,d)=> s + num(d,'vol_potencial'), 0);
+
+  el.innerHTML = `
+    <div class="metrics">
+      <div class="metric"><div class="metric-v">${DATA.length}</div><div class="metric-l">Aserraderos relevados</div></div>
+      <div class="metric"><div class="metric-v">${avg}</div><div class="metric-l">Score promedio</div><div class="metric-s">sobre 100</div></div>
+      <div class="metric"><div class="metric-v">${aptos}</div><div class="metric-l">Aptos (Cat. A + B)</div><div class="metric-s">${cats.A} A · ${cats.B} B</div></div>
+      <div class="metric"><div class="metric-v">${producenChips}</div><div class="metric-l">Ya producen chips</div></div>
+      <div class="metric"><div class="metric-v">${volTotal.toLocaleString('es-AR')}</div><div class="metric-l">Volumen potencial total</div><div class="metric-s">ton/mes (declarado)</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">DISTRIBUCIÓN POR CATEGORÍA</div><div class="chart-box"><canvas id="ch-cat"></canvas></div></div>
+      <div class="card"><div class="card-title">SCORE PROMEDIO POR PROVINCIA</div><div class="chart-box"><canvas id="ch-prov"></canvas></div></div>
+      <div class="card"><div class="card-title">INTERÉS EN EL PROYECTO</div><div class="chart-box"><canvas id="ch-interes"></canvas></div></div>
+      <div class="card"><div class="card-title">VOLUMEN POTENCIAL POR ASERRADERO</div><div class="chart-box"><canvas id="ch-vol"></canvas></div></div>
+    </div>`;
+
+  renderCatChart(); renderProvChart(); renderInteresChart(); renderVolChart();
+}
+
+function destroy(id){ if(CHARTS[id]){ CHARTS[id].destroy(); delete CHARTS[id]; } }
+const CHOPTS = {responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#CCE6D9',font:{family:'Calibri'}}}},scales:{x:{ticks:{color:'#CCE6D9',font:{family:'Calibri'}},grid:{color:'#1f4332'}},y:{ticks:{color:'#CCE6D9',font:{family:'Calibri'}},grid:{color:'#1f4332'},beginAtZero:true}}};
+
+function renderCatChart(){
+  destroy('ch-cat');
+  const cats={A:0,B:0,C:0,D:0}; DATA.forEach(d=>{const c=catOf(d);if(c)cats[c]++;});
+  CHARTS['ch-cat']=new Chart(document.getElementById('ch-cat'),{
+    type:'doughnut',
+    data:{labels:['A · '+CAT_DESC.A,'B · '+CAT_DESC.B,'C · '+CAT_DESC.C,'D · '+CAT_DESC.D],
+      datasets:[{data:[cats.A,cats.B,cats.C,cats.D],backgroundColor:[CAT_COLORS.A,CAT_COLORS.B,CAT_COLORS.C,CAT_COLORS.D],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#CCE6D9',font:{family:'Calibri',size:11},padding:10}}}}
+  });
+}
+function renderProvChart(){
+  destroy('ch-prov');
+  const provs=[...new Set(DATA.map(d=>d.provincia).filter(Boolean))];
+  const avgs=provs.map(p=>{const s=DATA.filter(d=>d.provincia===p).map(d=>num(d,'ev_score')).filter(n=>n>0);return s.length?+(s.reduce((a,b)=>a+b,0)/s.length).toFixed(1):0;});
+  CHARTS['ch-prov']=new Chart(document.getElementById('ch-prov'),{
+    type:'bar',data:{labels:provs,datasets:[{label:'Score promedio',data:avgs,backgroundColor:'#59A77F',borderRadius:4}]},
+    options:{...CHOPTS,plugins:{legend:{display:false}},scales:{...CHOPTS.scales,y:{...CHOPTS.scales.y,max:100}}}
+  });
+}
+function renderInteresChart(){
+  destroy('ch-interes');
+  const order=['Alto','Medio','Bajo','Nulo / no opinó'];
+  const counts=order.map(o=>DATA.filter(d=>(d.interes_proyecto||'').trim()===o).length);
+  CHARTS['ch-interes']=new Chart(document.getElementById('ch-interes'),{
+    type:'bar',data:{labels:order,datasets:[{data:counts,backgroundColor:['#9ADAB7','#59A77F','#d6b15c','#e07050'],borderRadius:4}]},
+    options:{...CHOPTS,plugins:{legend:{display:false}}}
+  });
+}
+function renderVolChart(){
+  destroy('ch-vol');
+  const sorted=[...DATA].filter(d=>num(d,'vol_potencial')>0).sort((a,b)=>num(b,'vol_potencial')-num(a,'vol_potencial')).slice(0,12);
+  CHARTS['ch-vol']=new Chart(document.getElementById('ch-vol'),{
+    type:'bar',data:{labels:sorted.map(d=>d.razon_social||'—'),datasets:[{label:'ton/mes',data:sorted.map(d=>num(d,'vol_potencial')),backgroundColor:sorted.map(d=>CAT_COLORS[catOf(d)]||'#3A8B6B'),borderRadius:4}]},
+    options:{...CHOPTS,indexAxis:'y',plugins:{legend:{display:false}}}
+  });
+}
+
+// ═══ RANKING ═══
+function renderRankingFilters(){
+  const el=document.getElementById('rank-filters');
+  const opts=[['todos','Todos'],['A','Cat. A'],['B','Cat. B'],['C','Cat. C'],['D','Cat. D']];
+  el.innerHTML=opts.map(([k,l])=>`<div class="chip ${rankFilter===k?'active':''}" onclick="setRankFilter('${k}')">${l}</div>`).join('');
+}
+function setRankFilter(k){ rankFilter=k; renderRankingFilters(); renderRanking(); }
+function renderRanking(){
+  const t=document.getElementById('rank-table');
+  if(!DATA.length){ t.innerHTML=''; document.getElementById('page-ranking').querySelector('.card').insertAdjacentHTML('beforeend',''); return; }
+  let rows=[...DATA];
+  if(rankFilter!=='todos') rows=rows.filter(d=>catOf(d)===rankFilter);
+  rows.sort((a,b)=>num(b,'ev_score')-num(a,'ev_score'));
+  t.innerHTML=`
+    <thead><tr>
+      <th>#</th><th>Aserradero</th><th>Provincia</th><th>Departamento</th>
+      <th>Score</th><th>Cat.</th><th>Produce chips</th><th>Vol. pot. (ton/mes)</th><th>Próximo paso</th>
+    </tr></thead>
+    <tbody>${rows.map((d,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td class="rk-name">${d.razon_social||'—'}</td>
+        <td>${d.provincia||'—'}</td>
+        <td>${d.departamento||'—'}</td>
+        <td class="rk-score">${d.ev_score||'—'}</td>
+        <td>${catBadge(catOf(d))}</td>
+        <td>${d.produce_chips||'—'}</td>
+        <td>${d.vol_potencial||'—'}</td>
+        <td>${d.ev_proximo_paso||'—'}</td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+// ═══ ABASTECIMIENTO ═══
+function renderAbastecimiento(){
+  const el=document.getElementById('abast-content');
+  if(!DATA.length){ el.innerHTML=emptyState(); return; }
+  el.innerHTML=`
+    <div class="grid2">
+      <div class="card"><div class="card-title">ORIGEN DE LA MADERA</div><div class="chart-box"><canvas id="ch-origen"></canvas></div></div>
+      <div class="card"><div class="card-title">RADIO DE ABASTECIMIENTO</div><div class="chart-box"><canvas id="ch-radio"></canvas></div></div>
+      <div class="card"><div class="card-title">DESTINO ACTUAL DE SUBPRODUCTOS</div><div class="chart-box"><canvas id="ch-destino"></canvas></div></div>
+      <div class="card"><div class="card-title">DISPONIBILIDAD DE CHIPS PARA CELULOSA</div><div class="chart-box"><canvas id="ch-disp"></canvas></div></div>
+    </div>`;
+  donut('ch-origen','origen_madera');
+  donut('ch-radio','radio_abast');
+  donut('ch-destino','destino_subprod');
+  donut('ch-disp','vol_disponible');
+}
+function donut(id,field){
+  destroy(id);
+  const counts={};
+  DATA.forEach(d=>{const v=(d[field]||'').trim()||'(sin dato)'; counts[v]=(counts[v]||0)+1;});
+  const labels=Object.keys(counts);
+  const palette=['#59A77F','#9ADAB7','#d6b15c','#e07050','#3A8B6B','#2B6046','#7fc4a0'];
+  CHARTS[id]=new Chart(document.getElementById(id),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:Object.values(counts),backgroundColor:labels.map((_,i)=>palette[i%palette.length]),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#CCE6D9',font:{family:'Calibri',size:10},padding:8}}}}
+  });
+}
+
+// ═══ COMPARAR ═══
+function renderCompareSelects(){
+  const a=document.getElementById('cmp-a'), b=document.getElementById('cmp-b');
+  if(!DATA.length){ a.innerHTML=b.innerHTML=''; document.getElementById('cmp-out').innerHTML=''; return; }
+  const opts='<option value="">— Seleccionar —</option>'+DATA.map((d,i)=>`<option value="${i}">${d.razon_social||('Ficha '+(i+1))}</option>`).join('');
+  a.innerHTML=opts; b.innerHTML=opts;
+}
+const CMP_FIELDS=[
+  ['ev_score','Score (0–100)'],['ev_categoria','Categoría'],['provincia','Provincia'],['departamento','Departamento'],
+  ['produce_chips','Produce chips'],['vol_potencial','Vol. potencial (ton/mes)'],['vol_disponible','Disponibilidad'],
+  ['interes_proyecto','Interés'],['origen_madera','Origen madera'],['radio_abast','Radio abast.'],
+  ['rollizos_mes','Rollizos (m³/mes)'],['prod_aserrada','Prod. aserrada (m³/mes)'],['ev_proximo_paso','Próximo paso']
+];
+function renderCompare(){
+  const ia=document.getElementById('cmp-a').value, ib=document.getElementById('cmp-b').value;
+  const out=document.getElementById('cmp-out');
+  if(ia===''||ib===''){ out.innerHTML='<p style="color:var(--text3);font-size:0.8rem;margin-top:14px">Elegí dos aserraderos para compararlos.</p>'; return; }
+  const A=DATA[ia], B=DATA[ib];
+  const col=(d)=>`<div class="cmp-card">
+    <div style="font-family:var(--mono);color:var(--accent);font-size:0.86rem;margin-bottom:6px">${d.razon_social||'—'}</div>
+    <div style="margin-bottom:10px">${catBadge(catOf(d))} <span style="color:var(--text3);font-size:0.72rem">${CAT_DESC[catOf(d)]||''}</span></div>
+    ${CMP_FIELDS.map(([k,l])=>`<div class="cmp-row"><span class="k">${l}</span><span class="v">${d[k]||'—'}</span></div>`).join('')}
+  </div>`;
+  out.innerHTML=`<div class="cmp-cols">${col(A)}${col(B)}</div>`;
+}
+
+// ═══ MAPA ═══
+function renderMapa(){
+  const el=document.getElementById('mapa-list');
+  if(!DATA.length){ el.innerHTML='<p style="color:var(--text3);font-size:0.8rem">Sin datos.</p>'; return; }
+  const withGps=DATA.filter(d=>(d.gps_lat&&d.gps_lon)||(d.gps_coords&&d.gps_coords.includes(',')));
+  if(!withGps.length){ el.innerHTML='<p style="color:var(--text3);font-size:0.8rem">Ninguna ficha tiene coordenadas GPS cargadas.</p>'; return; }
+  el.innerHTML=`<div style="overflow-x:auto"><table>
+    <thead><tr><th>Aserradero</th><th>Localidad</th><th>Cat.</th><th>Coordenadas</th><th>Ver en mapa</th></tr></thead>
+    <tbody>${withGps.map(d=>{
+      let lat=d.gps_lat, lon=d.gps_lon;
+      if((!lat||!lon)&&d.gps_coords&&d.gps_coords.includes(',')){const p=d.gps_coords.split(',');lat=p[0].trim();lon=p[1].trim();}
+      return `<tr>
+        <td class="rk-name">${d.razon_social||'—'}</td>
+        <td>${d.localidad||d.departamento||'—'}</td>
+        <td>${catBadge(catOf(d))}</td>
+        <td style="font-family:var(--mono);font-size:0.74rem">${lat}, ${lon}</td>
+        <td><a class="maplink" href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">Abrir ↗</a></td>
+      </tr>`;}).join('')}
+    </tbody></table></div>`;
+}
+
+// ═══ EMPTY ═══
+function emptyState(){
+  return `<div class="empty">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="30" fill="none" stroke="#3A8B6B" stroke-width="6"/><circle cx="50" cy="50" r="8" fill="#3A8B6B"/></svg>
+    <h3>Sin datos cargados</h3>
+    <p>Cargá un archivo CSV exportado de la Sheet, o pegá la URL de la Sheet publicada como CSV. También podés ver el panel con datos de ejemplo para explorar su funcionamiento.</p>
+  </div>`;
+}
+
+// init: prellenar campo con la última URL usada (o la fija) y autocargar
+(function(){
+  let saved = '';
+  try{ saved = localStorage.getItem('dash_sheet_url') || ''; }catch(e){}
+  const startUrl = saved || SHEET_CSV_URL;
+  const input = document.getElementById('sheet-url');
+  if(input && startUrl) input.value = startUrl;
+  renderResumen();
+  if(startUrl) loadFromSheets(startUrl); // carga automática al abrir
+})();
+</script>
+</body>
+</html>
