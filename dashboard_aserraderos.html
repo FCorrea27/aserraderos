@@ -169,6 +169,9 @@ let DATA = [];
 let CHARTS = {};
 let rankFilter = 'todos';
 
+// URL CSV de la Sheet (publicada en la web). Auto-carga al abrir.
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTmzDjjBrObAFbr2HojWY8fx-pgAwFNH0skZuTfUJ_2W3pULf6riLMMZLjMlWicwzcT-YgSzCCshTUh/pub?gid=923431500&single=true&output=csv';
+
 // ═══ SCORE / CATEGORÍA (esquema nuevo 0–100, A/B/C/D) ═══
 function catFromScore(s){
   const n = parseFloat(s);
@@ -198,15 +201,18 @@ function loadCSV(input){
   r.onload = e => parseCSV(e.target.result);
   r.readAsText(f);
 }
-async function loadFromSheets(){
-  const url = document.getElementById('sheet-url').value.trim();
+async function loadFromSheets(forcedUrl){
+  const url = (forcedUrl || document.getElementById('sheet-url').value.trim());
   if(!url){ alert('Pegá la URL de la Sheet publicada como CSV.'); return; }
   try{
     const res = await fetch(url);
     const text = await res.text();
     parseCSV(text);
+    try{ localStorage.setItem('dash_sheet_url', url); }catch(e){}
   }catch(e){
-    alert('No se pudo cargar la Sheet. Verificá que esté publicada en la web como CSV:\n\nArchivo → Compartir → Publicar en la web → (hoja) → CSV.');
+    if(!forcedUrl){
+      alert('No se pudo cargar la Sheet. Verificá que esté publicada en la web como CSV:\n\nArchivo → Compartir → Publicar en la web → (hoja) → CSV.');
+    }
   }
 }
 function parseCSVLine(line){
@@ -469,8 +475,16 @@ function emptyState(){
   </div>`;
 }
 
-// init
-renderResumen();
+// init: prellenar campo con la última URL usada (o la fija) y autocargar
+(function(){
+  let saved = '';
+  try{ saved = localStorage.getItem('dash_sheet_url') || ''; }catch(e){}
+  const startUrl = saved || SHEET_CSV_URL;
+  const input = document.getElementById('sheet-url');
+  if(input && startUrl) input.value = startUrl;
+  renderResumen();
+  if(startUrl) loadFromSheets(startUrl); // carga automática al abrir
+})();
 </script>
 </body>
 </html>
