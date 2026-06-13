@@ -1,0 +1,26 @@
+{
+  "name": "Relevamiento de Aserraderos - Proyecto Ituzaingó",
+  "short_name": "Aserraderos",
+  "description": "Relevamiento de aserraderos para evaluación de suministro de chips a celulosa. Proyecto Ituzaingó, Corrientes y Misiones.",
+  "start_url": "./relevamiento_aserraderos.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F2E1E",
+  "theme_color": "#0F2E1E",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
