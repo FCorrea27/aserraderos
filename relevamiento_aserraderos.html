@@ -1,490 +1,1322 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard de Relevamiento · Aserraderos · Proyecto Ituzaingó</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0F2E1E">
+<title>Relevamiento Aserraderos · Proyecto Ituzaingó</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230F2E1E'/%3E%3Ccircle cx='50' cy='50' r='26' fill='none' stroke='%2359A77F' stroke-width='5'/%3E%3Cg fill='%2359A77F'%3E%3Cpolygon points='50,16 56,24 44,24'/%3E%3Cpolygon points='74,28 78,38 67,35'/%3E%3Cpolygon points='84,50 78,58 78,42'/%3E%3Cpolygon points='74,72 67,65 78,62'/%3E%3Cpolygon points='50,84 44,76 56,76'/%3E%3Cpolygon points='26,72 33,65 22,62'/%3E%3Cpolygon points='16,50 22,42 22,58'/%3E%3Cpolygon points='26,28 33,35 22,38'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='7' fill='%2359A77F'/%3E%3C/svg%3E">
 <style>
-:root{
-  --bg:#0F2E1E; --bg2:#1B392D; --bg3:#2B6046; --card:#173524; --border:#2B6046;
-  --accent:#59A77F; --accent2:#9ADAB7; --warn:#d6b15c; --danger:#e07050;
-  --text:#FFFFFF; --text2:#CCE6D9; --text3:#3A8B6B; --fill:#EBF4EF;
-  --mono:'Calibri','Segoe UI',sans-serif; --sans:'Calibri','Segoe UI',sans-serif;
-  --catA:#9ADAB7; --catB:#59A77F; --catC:#d6b15c; --catD:#e07050;
+:root {
+  --bg:        #0F2E1E;
+  --bg2:       #1B392D;
+  --bg3:       #2B6046;
+  --card:      #1B392D;
+  --border:    #2B6046;
+  --accent:    #59A77F;
+  --accent2:   #9ADAB7;
+  --danger:    #e07050;
+  --text:      #FFFFFF;
+  --text2:     #CCE6D9;
+  --text3:     #3A8B6B;
+  --fill:      #EBF4EF;
+  --mono:      'Calibri', 'Segoe UI', sans-serif;
+  --sans:      'Calibri', 'Segoe UI', sans-serif;
+  --r:         10px;
+  --r2:        6px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
-.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
-.topbar svg{width:34px;height:34px;flex-shrink:0}
-.topbar-t{line-height:1.3}
-.topbar-logo{font-family:var(--mono);font-size:0.8rem;color:var(--accent);letter-spacing:0.05em}
-.topbar-sub{font-size:0.7rem;color:var(--text2)}
-.topbar-right{margin-left:auto;font-size:0.74rem;color:var(--text2);font-family:var(--mono)}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overscroll-behavior: none;
+}
 
-.loader{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.file-label{background:var(--bg3);color:var(--text);padding:9px 14px;border-radius:6px;font-family:var(--mono);font-size:0.74rem;cursor:pointer;border:1px solid var(--border)}
-.file-label input{display:none}
-.loader .sep{color:var(--text3);font-size:0.8rem}
-.url-in{flex:1;min-width:220px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-family:var(--mono);font-size:0.74rem}
-.btn{background:var(--accent);color:var(--bg);border:none;border-radius:6px;padding:9px 16px;font-family:var(--mono);font-size:0.74rem;font-weight:600;cursor:pointer}
-.btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+/* SPLASH */
+#splash {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; z-index: 999; transition: opacity 0.4s;
+}
+#splash svg { width: 72px; height: 72px; }
+#splash h1 { font-family: var(--mono); font-size: 1.05rem; color: var(--accent); letter-spacing: 0.08em; text-align:center; }
+#splash p { font-size: 0.8rem; color: var(--text2); }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 14px;overflow-x:auto}
-.tab{padding:12px 18px;font-family:var(--mono);font-size:0.76rem;letter-spacing:0.03em;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+/* CONFIG */
+#config-screen {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px; gap: 16px;
+}
+#config-screen .cfg-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 24px; width: 100%; max-width: 420px; display:flex; flex-direction:column; gap:14px;
+}
+#config-screen svg { width: 56px; height: 56px; align-self:center; }
+#config-screen h2 { font-family: var(--mono); font-size: 0.95rem; color: var(--accent); text-align:center; letter-spacing:0.05em; }
+#config-screen label { font-size: 0.72rem; color: var(--text2); font-family: var(--mono); display:block; margin-bottom:5px; }
+#config-screen input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 11px; color: var(--text); font-family: var(--sans); font-size: 0.9rem;
+}
+#config-screen .cfg-hint { font-size: 0.68rem; color: var(--text3); margin-top:4px; }
 
-.wrap{padding:20px;max-width:1280px;margin:0 auto}
-.page{display:none}
-.page.active{display:block}
+/* SHELL */
+#app { display: none; flex-direction: column; min-height: 100vh; }
 
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
-.metric{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
-.metric-v{font-family:var(--mono);font-size:1.9rem;font-weight:700;color:var(--accent)}
-.metric-l{font-size:0.78rem;color:var(--text2);margin-top:4px}
-.metric-s{font-size:0.68rem;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+/* TOP BAR */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 14px;
+  display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar svg { width: 30px; height: 30px; flex-shrink:0; }
+.topbar-txt { line-height:1.25; }
+.topbar-logo { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.05em; }
+.topbar-sub { font-size: 0.66rem; color: var(--text2); }
+.topbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.badge-sync { font-size: 0.62rem; font-family: var(--mono); padding: 3px 8px; border-radius: 20px; white-space:nowrap; }
+.badge-sync.online { background: #0e3d2e; color: var(--accent); border: 1px solid var(--accent); }
+.badge-sync.offline { background: #3d1a0e; color: var(--danger); border: 1px solid var(--danger); }
 
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
-.card-title{font-family:var(--mono);font-size:0.82rem;color:var(--accent);letter-spacing:0.03em;margin-bottom:14px}
-.chart-box{position:relative;height:260px}
+/* NAV TABS */
+.nav-tabs {
+  display: flex; overflow-x: auto; scrollbar-width: none;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 0 6px;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  flex-shrink: 0; padding: 9px 13px;
+  font-size: 0.68rem; font-family: var(--mono); letter-spacing: 0.03em;
+  color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-.cat-badge{display:inline-block;font-family:var(--mono);font-size:0.74rem;font-weight:700;padding:3px 10px;border-radius:14px;min-width:54px;text-align:center}
-.cat-A{background:#0d3325;color:var(--catA);border:1px solid var(--catA)}
-.cat-B{background:#0a2e20;color:var(--catB);border:1px solid var(--catB)}
-.cat-C{background:#2a2200;color:var(--catC);border:1px solid var(--catC)}
-.cat-D{background:#2a0d0a;color:var(--catD);border:1px solid var(--catD)}
-.cat-x{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+/* PROGRESS */
+.progress-bar { height: 3px; background: var(--bg2); }
+.progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; width: 0; }
 
-table{width:100%;border-collapse:collapse;font-size:0.8rem}
-th{text-align:left;padding:10px 8px;font-family:var(--mono);font-size:0.68rem;color:var(--text3);border-bottom:1px solid var(--border);letter-spacing:0.03em;cursor:pointer;white-space:nowrap}
-td{padding:10px 8px;border-bottom:1px solid #1f4332;color:var(--text2)}
-tr:hover td{background:#14402e}
-.rk-name{color:var(--text);font-weight:600}
-.rk-score{font-family:var(--mono);font-weight:600;color:var(--accent)}
+/* MAIN */
+.main { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
+.section-hdr { margin-bottom: 16px; }
+.section-hdr h2 { font-family: var(--mono); font-size: 0.95rem; color: var(--accent); letter-spacing: 0.04em; }
+.section-hdr p { font-size: 0.76rem; color: var(--text2); margin-top: 4px; }
 
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.chip{padding:6px 12px;border-radius:16px;font-family:var(--mono);font-size:0.7rem;cursor:pointer;border:1px solid var(--border);color:var(--text2);background:var(--bg)}
-.chip.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+/* DOTS */
+.dots { display:flex; gap:6px; justify-content:center; margin: 4px 0 14px; flex-wrap:wrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.2s; cursor:pointer; }
+.dot.active { background: var(--accent); }
+.dot.done { background: var(--text3); }
 
-.empty{text-align:center;padding:60px 20px;color:var(--text3)}
-.empty svg{width:48px;height:48px;opacity:0.4;margin-bottom:14px}
-.empty h3{font-family:var(--mono);font-size:0.9rem;color:var(--text2);margin-bottom:8px}
-.empty p{font-size:0.8rem;max-width:420px;margin:0 auto;line-height:1.5}
+/* QCARD */
+.qcard {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 14px; margin-bottom: 12px;
+}
+.qcard.error { border-color: var(--danger); }
+.qlabel { margin-bottom: 10px; }
+.qtext { font-size: 0.88rem; color: var(--text); font-weight: 600; line-height:1.3; }
+.qnota { font-size: 0.72rem; color: var(--text2); font-weight: 400; margin-top: 4px; font-style: italic; }
+.qreq { color: var(--accent); margin-left: 3px; }
+.verror { color: var(--danger); font-size: 0.72rem; margin-top: 8px; }
 
-.sel{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-family:var(--mono);font-size:0.76rem}
-.cmp-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.cmp-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px}
-.cmp-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1f4332;font-size:0.78rem}
-.cmp-row .k{color:var(--text3)}
-.cmp-row .v{color:var(--text);font-family:var(--mono)}
+/* OPTIONS */
+.options { display: flex; flex-direction: column; gap: 7px; }
+.opt-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 10px 12px; cursor: pointer; transition: all 0.15s;
+}
+.opt-item.selected { border-color: var(--accent); background: #14402e; }
+.opt-circle { width: 17px; height: 17px; border-radius: 50%; border: 2px solid var(--border); flex-shrink:0; position:relative; }
+.opt-item.selected .opt-circle { border-color: var(--accent); }
+.opt-item.selected .opt-circle::after { content:''; position:absolute; inset:3px; border-radius:50%; background: var(--accent); }
+.opt-square { width: 17px; height: 17px; border-radius: 4px; border: 2px solid var(--border); flex-shrink:0; position:relative; }
+.opt-item.selected .opt-square { border-color: var(--accent); }
+.opt-item.selected .opt-square::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color: var(--accent); font-size:0.72rem; font-weight:700; }
+.opt-label { font-size: 0.84rem; color: var(--text); }
 
-.maplink{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:0.74rem}
-.maplink:hover{text-decoration:underline}
+/* NUM */
+.num-group { display: flex; align-items: center; gap: 10px; }
+.num-input {
+  flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 11px; color: var(--text); font-family: var(--sans); font-size: 0.92rem; width:100%;
+}
+.num-input:focus { outline: none; border-color: var(--accent); }
+.num-unit { font-size: 0.78rem; color: var(--text2); font-family: var(--mono); white-space:nowrap; }
+.pct-total { font-size: 0.72rem; font-family: var(--mono); margin-top: 6px; color: var(--text3); }
+.pct-total.ok { color: var(--accent); }
+.pct-total.err { color: var(--danger); }
+
+/* SELECT (dropdown) */
+.sel-drop {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 11px; color: var(--text); font-family: var(--sans); font-size: 0.9rem;
+}
+.sel-drop:focus { outline:none; border-color: var(--accent); }
+
+/* TEXT */
+.text-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 11px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; resize: vertical;
+}
+.text-input:focus { outline: none; border-color: var(--accent); }
+.text-hint { font-size: 0.66rem; color: var(--text3); margin-top: 5px; font-style: italic; }
+.notes-box label { font-size: 0.78rem; color: var(--text2); font-family: var(--mono); display:block; margin-bottom:6px; }
+
+/* CALC */
+.calc-display {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--fill); border-radius: var(--r2); padding: 12px 14px; color: var(--bg);
+}
+.calc-display > span:first-child { font-size: 0.82rem; font-weight:600; }
+.calc-val { font-family: var(--mono); font-size: 1.05rem; font-weight: 700; color: var(--bg2); }
+.calc-val small { font-size: 0.7rem; font-weight: 400; }
+.calc-formula { font-size: 0.68rem; color: var(--text3); font-family: var(--mono); margin-top: 6px; }
+
+/* CATEGORY DISPLAY */
+.cat-display {
+  border-radius: var(--r); padding: 16px; text-align:center; margin-top:4px;
+  border: 2px solid var(--border);
+}
+.cat-letter { font-family: var(--mono); font-size: 2.4rem; font-weight: 700; line-height:1; }
+.cat-desc { font-size: 0.78rem; margin-top: 6px; }
+.cat-score { font-size: 0.72rem; font-family: var(--mono); color: var(--text2); margin-top: 4px; }
+.cat-A { border-color: var(--accent); } .cat-A .cat-letter { color: var(--accent2); }
+.cat-B { border-color: var(--accent); } .cat-B .cat-letter { color: var(--accent); }
+.cat-C { border-color: #c9a14a; } .cat-C .cat-letter { color: #d6b15c; }
+.cat-D { border-color: var(--danger); } .cat-D .cat-letter { color: var(--danger); }
+
+/* SECTION DIVIDER */
+.sdiv { font-family: var(--mono); font-size: 0.74rem; color: var(--accent); letter-spacing: 0.05em; padding: 10px 0 2px; border-top:1px solid var(--border); margin-top:6px; }
+
+/* GPS button */
+.gps-btn {
+  background: var(--accent); color: var(--bg); border: none; border-radius: var(--r2);
+  padding: 11px 16px; font-family: var(--mono); font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; width: 100%;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg2); border-top: 1px solid var(--border);
+  padding: 12px 14px; display: flex; gap: 10px; z-index: 100;
+}
+.btn {
+  flex: 1; padding: 12px; border: none; border-radius: var(--r2);
+  font-family: var(--mono); font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-prev { background: var(--bg3); color: var(--text); }
+.btn-prev:disabled { opacity: 0.4; }
+.btn-next { background: var(--accent); color: var(--bg); }
+.btn-submit { background: var(--accent2); color: var(--bg); }
+
+/* SAVED */
+.saved-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 12px 14px; margin-bottom: 10px; display: flex; align-items:center; gap:10px;
+}
+.saved-item-info { flex:1; }
+.saved-item-info h4 { font-size: 0.88rem; color: var(--text); }
+.saved-item-info p { font-size: 0.72rem; color: var(--text2); margin-top: 3px; }
+.saved-item-btns { display:flex; flex-direction:column; gap:6px; }
+.btn-sm { padding: 6px 10px; border:none; border-radius: var(--r2); font-family: var(--mono); font-size:0.66rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn-sm-accent { background: var(--accent); color: var(--bg); }
+.btn-sm-warn { background: var(--bg3); color: var(--danger); }
+
+/* MODAL / OVERLAY */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index: 500; padding:24px; }
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; max-width: 380px; text-align: center; }
+.modal-icon { font-size: 2.2rem; margin-bottom: 10px; }
+.modal h3 { font-family: var(--mono); font-size: 1rem; color: var(--accent); letter-spacing:0.04em; }
+.modal p { font-size: 0.82rem; color: var(--text2); margin: 10px 0 18px; line-height:1.45; }
+.modal-btns { display:flex; gap:10px; }
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--bg3); color: var(--text); padding: 11px 20px; border-radius: 24px;
+  font-size: 0.82rem; opacity: 0; transition: all 0.3s; z-index: 600; pointer-events:none;
+  border: 1px solid var(--accent);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<div class="topbar">
+<!-- SPLASH -->
+<div id="splash">
   <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="50" r="30" fill="none" stroke="#59A77F" stroke-width="6"/>
+    <circle cx="50" cy="50" r="30" fill="none" stroke="#59A77F" stroke-width="5"/>
     <g fill="#59A77F">
-      <polygon points="50,12 57,22 43,22"/><polygon points="78,24 82,36 69,32"/>
-      <polygon points="88,50 80,59 80,41"/><polygon points="78,76 69,68 82,64"/>
-      <polygon points="50,88 43,78 57,78"/><polygon points="22,76 31,68 18,64"/>
-      <polygon points="12,50 20,41 20,59"/><polygon points="22,24 31,32 18,36"/>
+      <polygon points="50,12 57,22 43,22"/>
+      <polygon points="78,24 82,36 69,32"/>
+      <polygon points="88,50 80,59 80,41"/>
+      <polygon points="78,76 69,68 82,64"/>
+      <polygon points="50,88 43,78 57,78"/>
+      <polygon points="22,76 31,68 18,64"/>
+      <polygon points="12,50 20,41 20,59"/>
+      <polygon points="22,24 31,32 18,36"/>
     </g>
     <circle cx="50" cy="50" r="8" fill="#59A77F"/>
   </svg>
-  <div class="topbar-t">
-    <div class="topbar-logo">DASHBOARD DE RELEVAMIENTO · ASERRADEROS</div>
-    <div class="topbar-sub">Proyecto Ituzaingó</div>
+  <h1>RELEVAMIENTO DE ASERRADEROS</h1>
+  <p>Proyecto Ituzaingó · Corrientes y Misiones</p>
+  <div class="spinner"></div>
+</div>
+
+<!-- CONFIG -->
+<div id="config-screen">
+  <div class="cfg-card">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#59A77F" stroke-width="5"/>
+      <g fill="#59A77F">
+        <polygon points="50,12 57,22 43,22"/><polygon points="78,24 82,36 69,32"/>
+        <polygon points="88,50 80,59 80,41"/><polygon points="78,76 69,68 82,64"/>
+        <polygon points="50,88 43,78 57,78"/><polygon points="22,76 31,68 18,64"/>
+        <polygon points="12,50 20,41 20,59"/><polygon points="22,24 31,32 18,36"/>
+      </g>
+      <circle cx="50" cy="50" r="8" fill="#59A77F"/>
+    </svg>
+    <h2>CONFIGURACIÓN INICIAL</h2>
+    <div>
+      <label>Nombre del relevador</label>
+      <input id="cfg-nombre" type="text" placeholder="Tu nombre y apellido">
+    </div>
+    <div>
+      <label>URL de Google Apps Script</label>
+      <input id="cfg-url" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+      <div class="cfg-hint">Pegá el enlace del Web App. Podés dejarlo vacío y trabajar 100% offline; los datos se guardan en el dispositivo y se sincronizan después.</div>
+    </div>
+    <button class="btn btn-next" style="width:100%" onclick="saveConfig()">COMENZAR</button>
   </div>
-  <div class="topbar-right" id="n-total">Sin datos cargados</div>
 </div>
 
-<div class="loader">
-  <label class="file-label">Seleccionar archivo CSV
-    <input type="file" accept=".csv" onchange="loadCSV(this)">
-  </label>
-  <span class="sep">ó</span>
-  <input class="url-in" id="sheet-url" placeholder="URL de la Sheet publicada como CSV (Archivo → Compartir → Publicar en la web → CSV)">
-  <button class="btn" onclick="loadFromSheets()">CARGAR</button>
-  <button class="btn btn-ghost" onclick="loadDemo()">Ver con datos de ejemplo</button>
-</div>
-
-<div class="tabs">
-  <div class="tab active" data-tab="resumen" onclick="switchTab('resumen')">RESUMEN</div>
-  <div class="tab" data-tab="ranking" onclick="switchTab('ranking')">RANKING</div>
-  <div class="tab" data-tab="abastecimiento" onclick="switchTab('abastecimiento')">ABASTECIMIENTO</div>
-  <div class="tab" data-tab="comparar" onclick="switchTab('comparar')">COMPARAR</div>
-  <div class="tab" data-tab="mapa" onclick="switchTab('mapa')">MAPA</div>
-</div>
-
-<div class="wrap">
-
-  <!-- RESUMEN -->
-  <div class="page active" id="page-resumen">
-    <div id="resumen-content"></div>
-  </div>
-
-  <!-- RANKING -->
-  <div class="page" id="page-ranking">
-    <div class="card">
-      <div class="card-title">RANKING DE APTITUD PARA SUMINISTRO DE CHIPS A CELULOSA</div>
-      <div class="filters" id="rank-filters"></div>
-      <div style="overflow-x:auto"><table id="rank-table"></table></div>
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#59A77F" stroke-width="6"/>
+      <g fill="#59A77F">
+        <polygon points="50,12 57,22 43,22"/><polygon points="78,24 82,36 69,32"/>
+        <polygon points="88,50 80,59 80,41"/><polygon points="78,76 69,68 82,64"/>
+        <polygon points="50,88 43,78 57,78"/><polygon points="22,76 31,68 18,64"/>
+        <polygon points="12,50 20,41 20,59"/><polygon points="22,24 31,32 18,36"/>
+      </g>
+      <circle cx="50" cy="50" r="8" fill="#59A77F"/>
+    </svg>
+    <div class="topbar-txt">
+      <div class="topbar-logo">RELEVAMIENTO ASERRADEROS</div>
+      <div class="topbar-sub">Proyecto Ituzaingó</div>
+    </div>
+    <div class="topbar-right">
+      <span id="sync-badge" class="badge-sync online">● ONLINE</span>
     </div>
   </div>
 
-  <!-- ABASTECIMIENTO -->
-  <div class="page" id="page-abastecimiento">
-    <div id="abast-content"></div>
-  </div>
+  <div class="nav-tabs" id="nav-tabs"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
 
-  <!-- COMPARAR -->
-  <div class="page" id="page-comparar">
-    <div class="card">
-      <div class="card-title">COMPARAR DOS ASERRADEROS</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <select class="sel" id="cmp-a" onchange="renderCompare()"></select>
-        <select class="sel" id="cmp-b" onchange="renderCompare()"></select>
-      </div>
-      <div id="cmp-out"></div>
-    </div>
-  </div>
+  <div class="main" id="main-content"></div>
 
-  <!-- MAPA -->
-  <div class="page" id="page-mapa">
-    <div class="card">
-      <div class="card-title">UBICACIONES RELEVADAS</div>
-      <div id="mapa-list"></div>
-    </div>
+  <div class="bottom-nav">
+    <button class="btn btn-prev" id="btn-prev" onclick="prevSection()">← ANTERIOR</button>
+    <button class="btn btn-next" id="btn-next" onclick="nextSection()">SIGUIENTE →</button>
+    <button class="btn btn-submit" id="btn-submit" style="display:none" onclick="submitForm()">✓ FINALIZAR FICHA</button>
   </div>
-
 </div>
+
+<div id="toast"></div>
 
 <script>
-let DATA = [];
-let CHARTS = {};
-let rankFilter = 'todos';
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let CFG = {};
+let formData = {};
+let currentSection = 0;
+let isOnline = navigator.onLine;
 
-// URL CSV de la Sheet (publicada en la web). Auto-carga al abrir.
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTmzDjjBrObAFbr2HojWY8fx-pgAwFNH0skZuTfUJ_2W3pULf6riLMMZLjMlWicwzcT-YgSzCCshTUh/pub?gid=923431500&single=true&output=csv';
+// ═══════════════════════════════════════════════════════════
+// DEPARTAMENTOS (INDEC) — Corrientes (25) y Misiones (17)
+// ═══════════════════════════════════════════════════════════
+const DEPARTAMENTOS = {
+  'Corrientes': [
+    'Bella Vista','Berón de Astrada','Capital','Concepción','Curuzú Cuatiá','Empedrado',
+    'Esquina','General Alvear','General Paz','Goya','Itatí','Ituzaingó','Lavalle','Mburucuyá',
+    'Mercedes','Monte Caseros','Paso de los Libres','Saladas','San Cosme','San Luis del Palmar',
+    'San Martín','San Miguel','San Roque','Santo Tomé','Sauce'
+  ],
+  'Misiones': [
+    'Apóstoles','Cainguás','Candelaria','Capital','Concepción','Eldorado','General Manuel Belgrano',
+    'Guaraní','Iguazú','Leandro N. Alem','Libertador General San Martín','Montecarlo','Oberá',
+    'San Ignacio','San Javier','San Pedro','25 de Mayo'
+  ]
+};
 
-// ═══ SCORE / CATEGORÍA (esquema nuevo 0–100, A/B/C/D) ═══
-function catFromScore(s){
-  const n = parseFloat(s);
-  if (isNaN(n)) return null;
-  if (n >= 70) return 'A';
-  if (n >= 45) return 'B';
-  if (n >= 25) return 'C';
+// ═══════════════════════════════════════════════════════════
+// FORM SCHEMA — 7 bloques (liviano, foco abastecimiento de chips)
+// ═══════════════════════════════════════════════════════════
+const SCHEMA = {
+  0: {
+    title: 'DATOS DEL RELEVAMIENTO',
+    desc: 'Identificación de la ficha y del relevamiento',
+    questions: [
+      { id: 'fecha', type: 'date', label: 'Fecha de visita' },
+      { id: 'ficha_num', type: 'num', label: 'N° de ficha', unit: '' },
+      { id: 'relevador', type: 'text1', label: 'Relevador' },
+      { id: 'contacto_directo', type: 'sn', label: '¿Hubo contacto directo con un responsable del establecimiento?' },
+    ]
+  },
+  1: {
+    title: 'DATOS DEL ASERRADERO',
+    desc: 'Identificación de la empresa e informante',
+    questions: [
+      { id: 'razon_social', type: 'text1', label: 'Nombre / Razón social del aserradero' },
+      { id: 'cuit', type: 'text1', label: 'CUIT' },
+      { id: 'forma_juridica', type: 'sel1', label: 'Tipo de empresa',
+        options: ['Persona física','SRL','SA','Cooperativa','Otra'] },
+      { id: 'informante_nombre', type: 'text1', label: 'Nombre del informante' },
+      { id: 'informante_cargo', type: 'text1', label: 'Cargo del informante' },
+      { id: 'informante_tel', type: 'text1', label: 'Teléfono / WhatsApp' },
+      { id: 'informante_email', type: 'text1', label: 'Correo electrónico' },
+    ]
+  },
+  2: {
+    title: 'UBICACIÓN',
+    desc: 'Provincia, departamento, coordenadas y acceso',
+    questions: [
+      { id: 'provincia', type: 'sel1', label: 'Provincia',
+        options: ['Corrientes','Misiones'] },
+      { id: 'departamento', type: 'deptdrop', label: 'Departamento', dependsOn: 'provincia' },
+      { id: 'localidad', type: 'text1', label: 'Localidad / paraje' },
+      { id: 'gps_coords', type: 'gps', label: 'Coordenadas GPS' },
+      { id: 'acceso', type: 'sel1', label: 'Tipo de acceso al establecimiento',
+        options: ['Asfalto hasta la planta','Ripio consolidado, transitable todo el año','Tierra mejorada, con dificultad en lluvia','Tierra sin mejorar, intransitable en lluvia'] },
+      { id: 'dist_ruta', type: 'num', label: 'Distancia a la ruta asfaltada principal', unit: 'km', decimal: true },
+    ]
+  },
+  3: {
+    title: 'CAPACIDAD PRODUCTIVA',
+    desc: 'Especies, volumen, turnos y equipamiento',
+    questions: [
+      { id: 'especies', type: 'selm', label: 'Especies procesadas',
+        options: ['Pinus taeda','Pinus elliottii','Pino híbrido','Eucalyptus grandis','Eucalyptus spp.','Otra'] },
+      { id: 'rollizos_mes', type: 'num', label: 'Consumo de rollizos', unit: 'm³/mes' },
+      { id: 'prod_aserrada', type: 'num', label: 'Producción de madera aserrada', unit: 'm³/mes' },
+      { id: 'cap_instalada', type: 'num', label: 'Capacidad instalada de aserrado', unit: 'm³/mes' },
+      { id: 'uso_capacidad', type: 'calc', label: 'Uso de capacidad instalada', formula: 'Producción / Capacidad × 100', unit: '%' },
+      { id: 'turnos', type: 'num', label: 'Turnos por día', unit: 'turnos' },
+      { id: 'dias_mes', type: 'num', label: 'Días operados por mes', unit: 'días' },
+      { id: 'equip_aserrado', type: 'sel1', label: 'Equipamiento de aserrado principal',
+        options: ['Sierra sinfín / banda','Sierra circular múltiple','Sierra alternativa / bastidor','Línea automatizada','Mixto'] },
+      { id: 'rendimiento', type: 'num', label: 'Rendimiento de aserrado (si lo conoce)', unit: '%', decimal: true },
+    ]
+  },
+  4: {
+    title: 'SUBPRODUCTOS Y ASTILLAS',
+    desc: 'Generación de subproductos limpios y situación de astillado',
+    questions: [
+      { id: 'subprod_gen', type: 'selm', label: 'Subproductos generados actualmente',
+        options: ['Costaneros / despuntes','Recortes limpios','Aserrín / viruta','Corteza','Astillas (chips)'] },
+      { id: 'vol_subprod_limpio', type: 'num', label: 'Volumen estimado de subproductos limpios (sin corteza)', unit: 'm³/mes' },
+      { id: 'destino_subprod', type: 'sel1', label: 'Destino actual de los subproductos',
+        options: ['Venta a terceros','Uso propio (energía / caldera)','Descarte / sin valorizar','Mixto'] },
+      // BIFURCACIÓN: produce chips actualmente?
+      { id: 'produce_chips', type: 'sn', label: '¿Produce astillas (chips) actualmente?' },
+      // ── Rama SÍ: calidad del chip
+      { id: 'chip_intro', type: 'sectionlabel', label: 'CALIDAD DE ASTILLA (PRODUCCIÓN ACTUAL)', desc: 'Completar solo si produce chips actualmente.', skipIf: {id:'produce_chips', val:'No'} },
+      { id: 'chip_vol', type: 'num', label: 'Volumen de chips producido', unit: 'ton/mes', decimal: true, skipIf: {id:'produce_chips', val:'No'} },
+      { id: 'chip_especie', type: 'sel1', label: 'Composición de los chips', skipIf: {id:'produce_chips', val:'No'},
+        options: ['Pino puro','Eucalipto puro','Mezcla pino/eucalipto','Mezcla con otras especies'] },
+      { id: 'chip_corteza', type: 'sel1', label: 'Contenido de corteza en los chips', skipIf: {id:'produce_chips', val:'No'},
+        options: ['Sin corteza (descortezado previo)','Corteza baja (< 1%)','Corteza media (1–5%)','Corteza alta (> 5%) / no controlado'] },
+      { id: 'chip_clasif', type: 'sel1', label: 'Clasificación / zarandeo de chips', skipIf: {id:'produce_chips', val:'No'},
+        options: ['Sí, con zaranda (granulometría controlada)','Clasificación parcial','Sin clasificar'] },
+      { id: 'chip_finos', type: 'sel1', label: 'Presencia de finos / aserrín mezclado', skipIf: {id:'produce_chips', val:'No'},
+        options: ['Bajo / separado','Moderado','Alto / sin separar'] },
+      { id: 'chip_humedad', type: 'num', label: 'Humedad estimada de los chips', unit: '% b.h.', decimal: true, skipIf: {id:'produce_chips', val:'No'} },
+      { id: 'chip_astilladora', type: 'sel1', label: 'Tipo de astilladora', skipIf: {id:'produce_chips', val:'No'},
+        options: ['De disco','De tambor','De cuchillas','No sabe'] },
+      // ── Rama NO: potencial de astillado
+      { id: 'pot_intro', type: 'sectionlabel', label: 'POTENCIAL DE ASTILLADO', desc: 'Completar solo si NO produce chips actualmente.', skipIf: {id:'produce_chips', val:'Sí'} },
+      { id: 'pot_interes_astillar', type: 'sn', label: '¿Tendría interés en astillar sus subproductos limpios?', skipIf: {id:'produce_chips', val:'Sí'} },
+      { id: 'pot_descortezado', type: 'sn', label: '¿Cuenta con descortezado de rollizos?', skipIf: {id:'produce_chips', val:'Sí'} },
+      { id: 'pot_espacio', type: 'sel1', label: 'Espacio físico para instalar línea de astillado', skipIf: {id:'produce_chips', val:'Sí'},
+        options: ['Disponible sin intervención','Con reubicación de equipos','Con obra civil menor','Con obra civil mayor','No hay espacio adecuado'] },
+      { id: 'pot_vol_astillable', type: 'num', label: 'Volumen potencial astillable (subproductos limpios)', unit: 'ton/mes', decimal: true, skipIf: {id:'produce_chips', val:'Sí'} },
+    ]
+  },
+  5: {
+    title: 'ABASTECIMIENTO FORESTAL',
+    desc: 'Origen de la madera, proveedores y radio de abastecimiento',
+    questions: [
+      { id: 'origen_madera', type: 'sel1', label: 'Origen de la madera',
+        options: ['Bosque propio exclusivamente','Compra a terceros exclusivamente','Mixto (propio + compra)'] },
+      { id: 'radio_abast', type: 'sel1', label: 'Radio de abastecimiento predominante',
+        options: ['< 50 km','50–100 km','101–200 km','> 200 km'] },
+      { id: 'proveedores', type: 'textnote', label: 'Proveedores principales (referencia)' },
+      { id: 'contrato_madera', type: 'sn', label: '¿Tiene contratos de abastecimiento de madera vigentes?' },
+      { id: 'estacionalidad', type: 'sel1', label: 'Estacionalidad del abastecimiento',
+        options: ['Estable todo el año','Variación estacional moderada','Fuerte estacionalidad / interrupciones'] },
+    ]
+  },
+  6: {
+    title: 'INTERÉS COMERCIAL',
+    desc: 'Disposición a participar del Proyecto Ituzaingó',
+    questions: [
+      { id: 'interes_proyecto', type: 'sel1', label: 'Interés en participar del Proyecto Ituzaingó',
+        options: ['Alto','Medio','Bajo','Nulo / no opinó'] },
+      { id: 'vol_disponible', type: 'sel1', label: 'Disponibilidad de chips para celulosa',
+        options: ['Sí, disponible de inmediato','Sí, con ampliación de producción','Sí, sujeto a renegociación de contratos','No disponible actualmente','No definido / no sabe'] },
+      { id: 'vol_potencial', type: 'num', label: 'Volumen potencial estimado para el proyecto', unit: 'ton/mes', decimal: true },
+      { id: 'contrato_largo', type: 'sn', label: '¿Interés en contrato de suministro de largo plazo?' },
+      { id: 'condiciones', type: 'selm', label: 'Condiciones / requisitos mencionados',
+        options: ['Precio de referencia asegurado','Volumen mínimo garantizado','Apoyo a inversión / equipamiento','Logística a cargo del comprador','Plazos de pago','Otra'] },
+      { id: 'restricciones', type: 'selm', label: 'Restricciones identificadas para suministrar',
+        options: ['Exclusividad con otro comprador','Cupos comprometidos','Limitaciones logísticas','Variabilidad estacional','Capacidad insuficiente','Ninguna'] },
+      { id: 'coment_comercial', type: 'textarea', label: 'Comentarios comerciales del informante' },
+    ]
+  },
+  7: {
+    title: 'EVALUACIÓN FINAL DEL RELEVADOR',
+    desc: 'Score de aptitud y categorización automática A/B/C/D',
+    questions: [
+      { id: 'ev_intro', type: 'sectionlabel', label: 'COMPONENTES DE APTITUD', desc: 'Calificación del relevador. Cada componente 0–3. La categoría A/B/C/D se calcula automáticamente.' },
+      { id: 'ev_subprod', type: 'ord3', label: 'Disponibilidad de subproductos limpios / chips' },
+      { id: 'ev_calidad', type: 'ord3', label: 'Calidad / aptitud del chip para celulosa' },
+      { id: 'ev_capacidad', type: 'ord3', label: 'Capacidad productiva y volumen' },
+      { id: 'ev_astillado', type: 'ord3', label: 'Capacidad o potencial de astillado' },
+      { id: 'ev_logistica', type: 'ord3', label: 'Logística de despacho y acceso vial' },
+      { id: 'ev_abast', type: 'ord3', label: 'Solidez del abastecimiento forestal' },
+      { id: 'ev_interes', type: 'ord3', label: 'Interés comercial percibido' },
+      { id: 'ev_score', type: 'calc', label: 'SCORE DE APTITUD', formula: 'Suma de 7 componentes / 21 → escala 0–100', unit: '/ 100' },
+      { id: 'ev_categoria', type: 'catdisplay', label: 'CATEGORÍA AUTOMÁTICA' },
+      { id: 'ev_cat_override', type: 'sel1', label: 'Ajuste manual de categoría (opcional)',
+        options: ['Mantener categoría automática','Forzar A','Forzar B','Forzar C','Forzar D'] },
+      { id: 'ev_aptitud', type: 'ord3b', label: 'Aptitud para suministro de chips a celulosa' },
+      { id: 'ev_interes_escala', type: 'ord5b', label: 'Interés percibido del informante (1–5)' },
+      { id: 'ev_proximo_paso', type: 'sel1', label: 'Próximo paso recomendado',
+        options: ['Visita técnica de detalle','Solicitar muestras de chip','Negociación comercial','Mantener en seguimiento','Descartar'] },
+      { id: 'ev_comentarios', type: 'textarea', label: 'Comentarios finales del relevador' },
+    ]
+  },
+};
+
+const SECTIONS = [
+  'Relevamiento','Aserradero','Ubicación','Capacidad','Subproductos','Abastecimiento','Comercial','Evaluación'
+];
+
+const ORD3_OPTS = [
+  { val: 3, label: '3 — Muy bueno / apto' },
+  { val: 2, label: '2 — Bueno / apto con mejoras menores' },
+  { val: 1, label: '1 — Limitado / requiere inversión' },
+  { val: 0, label: '0 — Deficiente / no apto' },
+];
+const ORD3B_OPTS = [
+  { val: 3, label: '3 — Apto sin inversiones (suministro inmediato)' },
+  { val: 2, label: '2 — Apto con inversiones menores (< 1 año)' },
+  { val: 1, label: '1 — Apto con inversiones mayores (1–3 años)' },
+  { val: 0, label: '0 — No apto en plazo razonable' },
+];
+const ORD5B_OPTS = [
+  { val: 5, label: '5 — Muy alto' },
+  { val: 4, label: '4 — Alto' },
+  { val: 3, label: '3 — Medio' },
+  { val: 2, label: '2 — Bajo' },
+  { val: 1, label: '1 — Muy bajo / nulo' },
+];
+
+// ═══════════════════════════════════════════════════════════
+// IDENTIDAD DE DISPOSITIVO Y FICHA (anti-duplicados / multi-relevador)
+// ═══════════════════════════════════════════════════════════
+function getDeviceId() {
+  let d = localStorage.getItem('aserraderos_device_id');
+  if (!d) {
+    // identificador aleatorio único por dispositivo, generado una sola vez
+    const rnd = (Math.random().toString(36).slice(2, 8)) + (Math.random().toString(36).slice(2, 6));
+    d = rnd.slice(0, 8);
+    localStorage.setItem('aserraderos_device_id', d);
+  }
+  return d;
+}
+function newFichaId() {
+  // [dispositivo]-[timestamp ms]-[aleatorio] → único aunque dos teléfonos estén offline
+  return getDeviceId() + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+}
+
+// Correlativo de N° de ficha, por dispositivo (autocompletado, editable)
+function getNextFichaNum() {
+  const n = parseInt(localStorage.getItem('aserraderos_ficha_counter') || '0');
+  return n + 1;
+}
+function bumpFichaNum(used) {
+  // avanza el contador para que la próxima ficha no repita número
+  const cur = parseInt(localStorage.getItem('aserraderos_ficha_counter') || '0');
+  const u = parseInt(used);
+  const next = Math.max(cur + 1, isNaN(u) ? 0 : u);
+  localStorage.setItem('aserraderos_ficha_counter', String(next));
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const cfg = localStorage.getItem('aserraderos_cfg');
+    if (cfg) {
+      CFG = JSON.parse(cfg);
+      document.getElementById('splash').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        initApp();
+      }, 400);
+    } else {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('config-screen').style.display = 'flex';
+    }
+  }, 900);
+});
+
+window.addEventListener('online', () => { isOnline = true; updateSyncBadge(); });
+window.addEventListener('offline', () => { isOnline = false; updateSyncBadge(); });
+
+function updateSyncBadge() {
+  const b = document.getElementById('sync-badge');
+  b.textContent = isOnline ? '● ONLINE' : '● OFFLINE';
+  b.className = 'badge-sync ' + (isOnline ? 'online' : 'offline');
+}
+
+function saveConfig() {
+  const nombre = document.getElementById('cfg-nombre').value.trim();
+  const url = document.getElementById('cfg-url').value.trim();
+  if (!nombre) { alert('Ingresá tu nombre'); return; }
+  CFG = { nombre, url };
+  localStorage.setItem('aserraderos_cfg', JSON.stringify(CFG));
+  document.getElementById('config-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
+function initApp() {
+  updateSyncBadge();
+  formData = {};
+  currentSection = 0;
+  buildNavTabs();
+  renderSection(0);
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════
+const SAVED_IDX = SECTIONS.length; // tab índice para "Guardadas"
+
+function buildNavTabs() {
+  const container = document.getElementById('nav-tabs');
+  container.innerHTML = '';
+  SECTIONS.forEach((s, i) => {
+    const t = document.createElement('div');
+    t.className = 'nav-tab' + (i === currentSection ? ' active' : '');
+    t.textContent = `${i + 1}  ${s}`;
+    t.onclick = () => { currentSection = i; buildNavTabs(); renderSection(i); scrollTop(); };
+    container.appendChild(t);
+  });
+  const tg = document.createElement('div');
+  tg.className = 'nav-tab' + (currentSection === SAVED_IDX ? ' active' : '');
+  tg.textContent = 'GUARDADAS';
+  tg.onclick = () => { currentSection = SAVED_IDX; buildNavTabs(); renderSection(SAVED_IDX); scrollTop(); };
+  container.appendChild(tg);
+
+  const active = container.querySelector('.active');
+  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function prevSection() {
+  if (currentSection > 0 && currentSection <= SECTIONS.length - 1) {
+    currentSection--; buildNavTabs(); renderSection(currentSection); scrollTop();
+  } else if (currentSection === SAVED_IDX) {
+    currentSection = SECTIONS.length - 1; buildNavTabs(); renderSection(currentSection); scrollTop();
+  }
+}
+function nextSection() {
+  if (currentSection < SECTIONS.length - 1) {
+    currentSection++; buildNavTabs(); renderSection(currentSection); scrollTop();
+  }
+}
+function scrollTop() { const m = document.querySelector('.main'); if (m) m.scrollTo(0, 0); window.scrollTo(0, 0); }
+
+function updateBottomNav() {
+  document.getElementById('btn-prev').disabled = currentSection === 0;
+  const isLastForm = currentSection === SECTIONS.length - 1;
+  const isSaved = currentSection === SAVED_IDX;
+  document.getElementById('btn-next').style.display = (isLastForm || isSaved) ? 'none' : 'flex';
+  document.getElementById('btn-submit').style.display = isLastForm ? 'flex' : 'none';
+  document.getElementById('btn-prev').style.display = isSaved ? 'none' : 'flex';
+  const pct = isSaved ? 100 : (currentSection / (SECTIONS.length - 1)) * 100;
+  document.getElementById('progress-fill').style.width = Math.min(pct, 100) + '%';
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function renderSection(idx) {
+  updateBottomNav();
+  const main = document.getElementById('main-content');
+
+  if (idx === SAVED_IDX) { renderSavedList(main); return; }
+
+  const sec = SCHEMA[idx];
+  if (!sec) { main.innerHTML = '<p style="color:var(--text2);margin-top:20px">Sección no disponible</p>'; return; }
+
+  main.innerHTML = `<div class="section-hdr"><h2>${sec.title}</h2><p>${sec.desc}</p></div>`;
+
+  // dots de navegación
+  const dots = document.createElement('div');
+  dots.className = 'dots';
+  SECTIONS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === idx ? ' active' : i < idx ? ' done' : '');
+    d.onclick = () => { currentSection = i; buildNavTabs(); renderSection(i); scrollTop(); };
+    dots.appendChild(d);
+  });
+  main.appendChild(dots);
+
+  sec.questions.forEach(q => {
+    const el = renderQuestion(q);
+    if (el) main.appendChild(el);
+  });
+}
+
+function shouldSkip(q) {
+  if (!q.skipIf) return false;
+  return formData[q.skipIf.id] === q.skipIf.val;
+}
+
+function renderQuestion(q) {
+  if (shouldSkip(q)) return null;
+
+  if (q.type === 'sectionlabel') {
+    const wrap = document.createElement('div');
+    const d = document.createElement('div');
+    d.className = 'sdiv';
+    d.textContent = q.label;
+    wrap.appendChild(d);
+    if (q.desc) {
+      const p = document.createElement('p');
+      p.style.cssText = 'font-size:0.72rem;color:var(--text2);margin:4px 0 12px;font-style:italic';
+      p.textContent = q.desc;
+      wrap.appendChild(p);
+    }
+    return wrap;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.id = 'card-' + q.id;
+
+  const label = document.createElement('div');
+  label.className = 'qlabel';
+  const qtext = document.createElement('div');
+  qtext.className = 'qtext';
+  qtext.textContent = q.label;
+  if (q.nota) {
+    const nota = document.createElement('div');
+    nota.className = 'qnota';
+    nota.textContent = q.nota;
+    qtext.appendChild(nota);
+  }
+  label.appendChild(qtext);
+  card.appendChild(label);
+
+  const body = document.createElement('div');
+  switch (q.type) {
+    case 'sel1':      body.appendChild(renderSel1(q)); break;
+    case 'sn':        body.appendChild(renderSN(q)); break;
+    case 'selm':      body.appendChild(renderSelm(q)); break;
+    case 'num':       body.appendChild(renderNum(q)); break;
+    case 'date':      body.appendChild(renderDate(q)); break;
+    case 'text1':     body.appendChild(renderText1(q)); break;
+    case 'textnote':  body.appendChild(renderTextNote(q)); break;
+    case 'textarea':  body.appendChild(renderTextarea(q)); break;
+    case 'calc':      body.appendChild(renderCalc(q)); break;
+    case 'catdisplay':body.appendChild(renderCatDisplay(q)); break;
+    case 'gps':       body.appendChild(renderGPS(q)); break;
+    case 'deptdrop':  body.appendChild(renderDeptDrop(q)); break;
+    case 'ord3':      body.appendChild(renderOrd(q, ORD3_OPTS)); break;
+    case 'ord3b':     body.appendChild(renderOrd(q, ORD3B_OPTS)); break;
+    case 'ord5b':     body.appendChild(renderOrd(q, ORD5B_OPTS)); break;
+    default: break;
+  }
+  card.appendChild(body);
+  return card;
+}
+
+function renderSel1(q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  q.options.forEach(opt => {
+    const item = document.createElement('div');
+    item.className = 'opt-item' + (formData[q.id] === opt ? ' selected' : '');
+    item.innerHTML = `<div class="opt-circle"></div><span class="opt-label">${opt}</span>`;
+    item.onclick = () => {
+      formData[q.id] = opt;
+      wrap.querySelectorAll('.opt-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      // re-render si hay campos dependientes (skipIf o dropdown dependiente)
+      const sec = SCHEMA[currentSection];
+      const affects = sec.questions.some(qq =>
+        (qq.skipIf && qq.skipIf.id === q.id) || (qq.dependsOn === q.id));
+      if (affects) renderSection(currentSection);
+    };
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+function renderSN(q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  ['Sí','No'].forEach(opt => {
+    const item = document.createElement('div');
+    item.className = 'opt-item' + (formData[q.id] === opt ? ' selected' : '');
+    item.innerHTML = `<div class="opt-circle"></div><span class="opt-label">${opt}</span>`;
+    item.onclick = () => {
+      formData[q.id] = opt;
+      wrap.querySelectorAll('.opt-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      const sec = SCHEMA[currentSection];
+      if (sec.questions.some(qq => qq.skipIf && qq.skipIf.id === q.id)) renderSection(currentSection);
+    };
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+function renderSelm(q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  if (!formData[q.id]) formData[q.id] = [];
+  q.options.forEach(opt => {
+    const item = document.createElement('div');
+    const sel = Array.isArray(formData[q.id]) && formData[q.id].includes(opt);
+    item.className = 'opt-item' + (sel ? ' selected' : '');
+    item.innerHTML = `<div class="opt-square"></div><span class="opt-label">${opt}</span>`;
+    item.onclick = () => {
+      if (!Array.isArray(formData[q.id])) formData[q.id] = [];
+      const i = formData[q.id].indexOf(opt);
+      if (i > -1) { formData[q.id].splice(i, 1); item.classList.remove('selected'); }
+      else { formData[q.id].push(opt); item.classList.add('selected'); }
+    };
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+function renderNum(q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'num-group';
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'num-input';
+  input.placeholder = '—';
+  input.inputMode = q.decimal ? 'decimal' : 'numeric';
+  // ficha_num: si está vacío, autocompletar con el correlativo del dispositivo (editable)
+  if (q.id === 'ficha_num' && (formData[q.id] === undefined || formData[q.id] === '' || isNaN(formData[q.id]))) {
+    formData[q.id] = getNextFichaNum();
+  }
+  if (formData[q.id] !== undefined && !isNaN(formData[q.id])) input.value = formData[q.id];
+  input.oninput = () => {
+    const v = q.decimal ? parseFloat(input.value) : parseInt(input.value);
+    formData[q.id] = isNaN(v) ? undefined : v;
+    recalcScores();
+  };
+  wrap.appendChild(input);
+  if (q.unit) {
+    const u = document.createElement('span');
+    u.className = 'num-unit';
+    u.textContent = q.unit;
+    wrap.appendChild(u);
+  }
+  if (q.id === 'ficha_num') {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:0.68rem;color:var(--text3);margin-top:6px;font-style:italic;width:100%';
+    hint.textContent = 'Número sugerido automáticamente. Podés modificarlo si lo necesitás.';
+    const outer = document.createElement('div');
+    outer.appendChild(wrap);
+    outer.appendChild(hint);
+    return outer;
+  }
+  return wrap;
+}
+
+function renderDate(q) {
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.className = 'num-input';
+  if (formData[q.id]) input.value = formData[q.id];
+  else { input.value = new Date().toISOString().split('T')[0]; formData[q.id] = input.value; }
+  input.oninput = () => { formData[q.id] = input.value; };
+  return input;
+}
+
+function renderText1(q) {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'num-input';
+  input.placeholder = '—';
+  if (formData[q.id]) input.value = formData[q.id];
+  input.oninput = () => { formData[q.id] = input.value; };
+  return input;
+}
+
+function renderTextNote(q) {
+  const wrap = document.createElement('div');
+  const input = document.createElement('textarea');
+  input.className = 'text-input';
+  input.rows = 2;
+  input.placeholder = 'Texto de referencia';
+  if (formData[q.id]) input.value = formData[q.id];
+  input.oninput = () => { formData[q.id] = input.value; };
+  const hint = document.createElement('div');
+  hint.className = 'text-hint';
+  hint.textContent = 'Campo de referencia — no se usa en el análisis comparativo';
+  wrap.appendChild(input);
+  wrap.appendChild(hint);
+  return wrap;
+}
+
+function renderTextarea(q) {
+  const ta = document.createElement('textarea');
+  ta.className = 'text-input';
+  ta.rows = 3;
+  ta.placeholder = 'Observaciones...';
+  if (formData[q.id]) ta.value = formData[q.id];
+  ta.oninput = () => { formData[q.id] = ta.value; };
+  return ta;
+}
+
+function renderDeptDrop(q) {
+  const prov = formData[q.dependsOn];
+  const sel = document.createElement('select');
+  sel.className = 'sel-drop';
+  if (!prov) {
+    sel.innerHTML = `<option value="">Seleccioná primero la provincia</option>`;
+    sel.disabled = true;
+    return sel;
+  }
+  const list = DEPARTAMENTOS[prov] || [];
+  let opts = `<option value="">— Seleccionar departamento —</option>`;
+  list.forEach(d => {
+    opts += `<option value="${d}"${formData[q.id] === d ? ' selected' : ''}>${d}</option>`;
+  });
+  sel.innerHTML = opts;
+  sel.onchange = () => { formData[q.id] = sel.value; };
+  return sel;
+}
+
+function renderCalc(q) {
+  const wrap = document.createElement('div');
+  const disp = document.createElement('div');
+  disp.className = 'calc-display';
+  disp.id = 'calc-' + q.id;
+  const val = getCalcValue(q);
+  disp.innerHTML = `<span>${q.label}</span><span class="calc-val">${val !== null ? val : '—'} <small>${q.unit || ''}</small></span>`;
+  const f = document.createElement('div');
+  f.className = 'calc-formula';
+  f.textContent = '⟳ ' + q.formula;
+  wrap.appendChild(disp);
+  wrap.appendChild(f);
+  return wrap;
+}
+
+const EV_FIELDS = ['ev_subprod','ev_calidad','ev_capacidad','ev_astillado','ev_logistica','ev_abast','ev_interes'];
+
+function getScore100() {
+  const vals = EV_FIELDS.map(k => parseInt(formData[k]));
+  if (vals.some(isNaN)) return null;
+  const sum = vals.reduce((a,b) => a+b, 0); // 0..21
+  return Math.round(sum / 21 * 100);
+}
+
+function categoriaFromScore(s) {
+  if (s === null) return null;
+  if (s >= 70) return 'A';
+  if (s >= 45) return 'B';
+  if (s >= 25) return 'C';
   return 'D';
 }
-function catOf(d){
-  // usa ev_categoria si viene; si no, la deriva del score
-  const c = (d.ev_categoria||'').trim().toUpperCase();
-  if (['A','B','C','D'].includes(c)) return c;
-  return catFromScore(d.ev_score);
-}
-const CAT_DESC = {A:'Apto inmediato',B:'Apto c/ inversión menor',C:'Requiere inversión mayor',D:'No apto'};
-function catBadge(c){
-  if(!c) return `<span class="cat-badge cat-x">—</span>`;
-  return `<span class="cat-badge cat-${c}">${c}</span>`;
-}
-const CAT_COLORS = {A:'#9ADAB7',B:'#59A77F',C:'#d6b15c',D:'#e07050'};
 
-// ═══ CARGA ═══
-function loadCSV(input){
-  const f = input.files[0]; if(!f) return;
-  const r = new FileReader();
-  r.onload = e => parseCSV(e.target.result);
-  r.readAsText(f);
-}
-async function loadFromSheets(forcedUrl){
-  const url = (forcedUrl || document.getElementById('sheet-url').value.trim());
-  if(!url){ alert('Pegá la URL de la Sheet publicada como CSV.'); return; }
-  try{
-    const res = await fetch(url);
-    const text = await res.text();
-    parseCSV(text);
-    try{ localStorage.setItem('dash_sheet_url', url); }catch(e){}
-  }catch(e){
-    if(!forcedUrl){
-      alert('No se pudo cargar la Sheet. Verificá que esté publicada en la web como CSV:\n\nArchivo → Compartir → Publicar en la web → (hoja) → CSV.');
-    }
+function getCalcValue(q) {
+  if (q.id === 'uso_capacidad') {
+    const cap = parseFloat(formData['cap_instalada']);
+    const prod = parseFloat(formData['prod_aserrada']);
+    if (cap && prod) { const v = (prod/cap*100).toFixed(1); formData[q.id] = parseFloat(v); return v; }
+    return null;
   }
-}
-function parseCSVLine(line){
-  // parser simple con soporte de comillas
-  const out=[]; let cur=''; let q=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(ch === '"'){ if(q && line[i+1]==='"'){cur+='"';i++;} else q=!q; }
-    else if(ch === ',' && !q){ out.push(cur); cur=''; }
-    else cur+=ch;
+  if (q.id === 'ev_score') {
+    const s = getScore100();
+    if (s === null) return null;
+    formData['ev_score'] = s;
+    return s;
   }
-  out.push(cur);
+  return null;
+}
+
+const CAT_DESC = {
+  'A': 'Apto — suministro inmediato o de corto plazo',
+  'B': 'Apto con inversión menor',
+  'C': 'Requiere inversión mayor',
+  'D': 'No apto en plazo razonable'
+};
+
+function renderCatDisplay(q) {
+  const wrap = document.createElement('div');
+  wrap.id = 'catdisp-wrap';
+  wrap.appendChild(buildCatInner());
+  return wrap;
+}
+function buildCatInner() {
+  const s = getScore100();
+  let cat = categoriaFromScore(s);
+  const override = formData['ev_cat_override'];
+  if (override && override.startsWith('Forzar')) cat = override.replace('Forzar ', '');
+  formData['ev_categoria'] = cat || '';
+  const box = document.createElement('div');
+  if (!cat) {
+    box.className = 'cat-display';
+    box.innerHTML = `<div class="cat-letter" style="color:var(--text3)">—</div><div class="cat-desc" style="color:var(--text2)">Completá los 7 componentes de aptitud</div>`;
+    return box;
+  }
+  box.className = 'cat-display cat-' + cat;
+  box.innerHTML = `<div class="cat-letter">${cat}</div>
+    <div class="cat-desc">${CAT_DESC[cat]}</div>
+    <div class="cat-score">Score: ${s} / 100${override && override.startsWith('Forzar') ? ' · (ajuste manual)' : ''}</div>`;
+  return box;
+}
+
+function recalcScores() {
+  ['uso_capacidad','ev_score'].forEach(id => {
+    const el = document.getElementById('calc-' + id);
+    if (!el) return;
+    const q = findQuestion(id);
+    if (!q) return;
+    const val = getCalcValue(q);
+    const valEl = el.querySelector('.calc-val');
+    if (valEl) valEl.innerHTML = `${val !== null ? val : '—'} <small>${q.unit || ''}</small>`;
+  });
+  const cw = document.getElementById('catdisp-wrap');
+  if (cw) { cw.innerHTML = ''; cw.appendChild(buildCatInner()); }
+}
+
+function findQuestion(id) {
+  for (const sec of Object.values(SCHEMA)) {
+    const q = sec.questions.find(q => q.id === id);
+    if (q) return q;
+  }
+  return null;
+}
+
+function renderGPS(q) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+
+  const fields = document.createElement('div');
+  fields.style.cssText = 'display:flex;gap:8px;align-items:flex-end';
+
+  function mkField(labelTxt, key, otherKeyGetter) {
+    const w = document.createElement('div');
+    w.style.cssText = 'flex:1;display:flex;flex-direction:column;gap:4px';
+    const l = document.createElement('label');
+    l.style.cssText = 'font-size:0.66rem;color:var(--text2);font-family:var(--mono)';
+    l.textContent = labelTxt;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.step = 'any'; inp.className = 'num-input'; inp.placeholder = '—';
+    if (formData[key]) inp.value = formData[key];
+    inp.oninput = () => { formData[key] = inp.value; formData['gps_coords'] = (formData['gps_lat']||'') + ',' + (formData['gps_lon']||''); };
+    w.appendChild(l); w.appendChild(inp);
+    return { w, inp };
+  }
+  const lat = mkField('LATITUD', 'gps_lat');
+  const lon = mkField('LONGITUD', 'gps_lon');
+  fields.appendChild(lat.w); fields.appendChild(lon.w);
+
+  const btn = document.createElement('button');
+  btn.className = 'gps-btn';
+  btn.textContent = 'CAPTURAR UBICACIÓN ACTUAL';
+  const status = document.createElement('div');
+  status.style.cssText = 'font-size:0.72rem;font-family:var(--mono);color:var(--text2);text-align:center;min-height:18px';
+
+  btn.onclick = () => {
+    if (!navigator.geolocation) { status.textContent = 'GPS no disponible en este dispositivo'; status.style.color = 'var(--danger)'; return; }
+    btn.textContent = 'Obteniendo ubicación...'; btn.disabled = true; status.textContent = '';
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const la = pos.coords.latitude.toFixed(6);
+        const lo = pos.coords.longitude.toFixed(6);
+        const acc = Math.round(pos.coords.accuracy);
+        lat.inp.value = la; lon.inp.value = lo;
+        formData['gps_lat'] = la; formData['gps_lon'] = lo; formData['gps_coords'] = la + ',' + lo;
+        btn.textContent = 'UBICACIÓN CAPTURADA ✓';
+        btn.style.background = 'var(--bg2)'; btn.style.border = '1px solid var(--accent)'; btn.style.color = 'var(--accent)';
+        status.textContent = `Precisión: ±${acc} m`; status.style.color = 'var(--accent)';
+        btn.disabled = false;
+      },
+      (err) => {
+        btn.textContent = 'CAPTURAR UBICACIÓN ACTUAL'; btn.disabled = false; status.style.color = 'var(--danger)';
+        if (err.code === 1) status.textContent = 'Permiso denegado — activá el GPS en ajustes';
+        else if (err.code === 2) status.textContent = 'No se pudo obtener la ubicación';
+        else status.textContent = 'Tiempo agotado — intentá de nuevo';
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
+
+  wrap.appendChild(fields); wrap.appendChild(btn); wrap.appendChild(status);
+  return wrap;
+}
+
+function renderOrd(q, opts) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  opts.forEach(opt => {
+    const item = document.createElement('div');
+    const cur = formData[q.id];
+    item.className = 'opt-item' + (cur === opt.val || cur === String(opt.val) ? ' selected' : '');
+    item.innerHTML = `<div class="opt-circle"></div><span class="opt-label">${opt.label}</span>`;
+    item.onclick = () => {
+      formData[q.id] = opt.val;
+      wrap.querySelectorAll('.opt-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      recalcScores();
+    };
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVED LIST
+// ═══════════════════════════════════════════════════════════
+function getSaved() { try { return JSON.parse(localStorage.getItem('aserraderos_saved') || '[]'); } catch { return []; } }
+function setSaved(list) { localStorage.setItem('aserraderos_saved', JSON.stringify(list)); }
+
+function saveLocal() {
+  const list = getSaved();
+  const id = newFichaId();
+  const nombre_est = formData['razon_social'] || 'Sin nombre';
+  const fecha = formData['fecha'] || '—';
+  const cat = formData['ev_categoria'] || '—';
+  // ficha_id viaja dentro de los datos para que el backend deduplique
+  formData['ficha_id'] = id;
+  formData['device_id'] = getDeviceId();
+  // avanzar el correlativo de N° de ficha para la próxima
+  bumpFichaNum(formData['ficha_num']);
+  list.push({ id, nombre_est, fecha, categoria: cat, encuestador: CFG.nombre, syncing: false, data: { ...formData } });
+  setSaved(list);
+  showToast('Guardado localmente');
+}
+
+function renderSavedList(main) {
+  const list = getSaved();
+  main.innerHTML = `<div class="section-hdr"><h2>FICHAS GUARDADAS</h2><p>${list.length} ficha(s) en este dispositivo</p></div>`;
+  if (list.length === 0) {
+    main.innerHTML += `<p style="color:var(--text2);font-size:0.85rem;margin-top:16px">No hay fichas guardadas aún.</p>`;
+    return;
+  }
+  list.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'saved-item';
+    const syncingTxt = item.syncing ? ' · enviando...' : '';
+    div.innerHTML = `
+      <div class="saved-item-info">
+        <h4>${item.nombre_est}</h4>
+        <p>${item.fecha}  ·  ${item.encuestador}  ·  Cat. ${item.categoria || '—'}${syncingTxt}</p>
+      </div>
+      <div class="saved-item-btns">
+        <button class="btn-sm btn-sm-accent" onclick="syncItem(${idx})">SINCRONIZAR</button>
+        <button class="btn-sm btn-sm-warn" onclick="deleteItem(${idx})">✕</button>
+      </div>`;
+    main.appendChild(div);
+  });
+  const syncAllBtn = document.createElement('button');
+  syncAllBtn.className = 'btn btn-next';
+  syncAllBtn.id = 'btn-sync-all';
+  syncAllBtn.style.cssText = 'width:100%;margin-top:16px';
+  syncAllBtn.textContent = '↑ SINCRONIZAR TODAS';
+  syncAllBtn.onclick = syncAll;
+  main.appendChild(syncAllBtn);
+}
+
+function deleteItem(idx) {
+  if (!confirm('¿Eliminar esta ficha?')) return;
+  const list = getSaved();
+  list.splice(idx, 1);
+  setSaved(list);
+  renderSavedList(document.getElementById('main-content'));
+}
+
+// ═══════════════════════════════════════════════════════════
+// SYNC / SUBMIT
+// ═══════════════════════════════════════════════════════════
+let syncInProgress = false; // evita envíos concurrentes / doble toque
+
+function flatten(data) {
+  const out = {};
+  for (const k in data) {
+    const v = data[k];
+    out[k] = Array.isArray(v) ? v.join(' | ') : v;
+  }
   return out;
 }
-function parseCSV(text){
-  const lines = text.replace(/\r/g,'').trim().split('\n');
-  if(lines.length < 2){ alert('El archivo no tiene datos (solo encabezado o vacío).'); return; }
-  const headers = parseCSVLine(lines[0]).map(h=>h.trim());
-  DATA = lines.slice(1).map(line=>{
-    const vals = parseCSVLine(line);
-    const o = {};
-    headers.forEach((h,i)=> o[h] = (vals[i]||'').trim());
-    return o;
-  }).filter(d => Object.values(d).some(v=>v!==''));
-  refreshAll();
-}
 
-// ═══ DEMO ═══
-function loadDemo(){
-  const mk = (n,prov,dep,score,prod,vol)=>({
-    razon_social:n, provincia:prov, departamento:dep, localidad:dep,
-    ev_score:String(score), ev_categoria:catFromScore(score),
-    produce_chips:prod, vol_disponible: vol>0?'Sí, disponible de inmediato':'No disponible actualmente',
-    vol_potencial:String(vol), interes_proyecto: score>=60?'Alto':(score>=40?'Medio':'Bajo'),
-    origen_madera:'Mixto (propio + compra)', radio_abast:'50–100 km',
-    rollizos_mes:String(Math.round(vol*3.5)), vol_subprod_limpio:String(Math.round(vol*0.8)),
-    gps_lat:String(-27.5-Math.random()), gps_lon:String(-55.8-Math.random()),
-    ev_proximo_paso: score>=60?'Solicitar muestras de chip':'Mantener en seguimiento',
-    encuestador:'Demo', fecha:'2026-06-04'
+async function sendToSheets(data) {
+  if (!CFG.url) throw new Error('URL de Google Apps Script no configurada');
+  await fetch(CFG.url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ encuestador: CFG.nombre, timestamp: new Date().toISOString(), ...flatten(data) })
   });
-  DATA = [
-    mk('Aserradero El Pinar','Misiones','Eldorado',82,'Sí',1200),
-    mk('Maderas del Norte','Corrientes','Santo Tomé',68,'No',600),
-    mk('Forestal Ituzaingó','Corrientes','Ituzaingó',74,'Sí',900),
-    mk('Aserradero San Javier','Misiones','San Javier',51,'No',300),
-    mk('Maderera Concepción','Corrientes','Concepción',38,'No',150),
-    mk('Pino Verde SA','Misiones','Montecarlo',61,'Sí',520),
-    mk('Aserradero Goya','Corrientes','Goya',22,'No',0),
-  ];
-  document.getElementById('sheet-url').value='';
-  refreshAll();
+  return true;
 }
 
-// ═══ TABS ═══
-function switchTab(t){
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===t));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+t).classList.add('active');
+function setSyncButtonsDisabled(disabled, label) {
+  document.querySelectorAll('.btn-sm-accent, #btn-sync-all').forEach(b => {
+    b.disabled = disabled;
+    b.style.opacity = disabled ? '0.5' : '1';
+  });
+  const all = document.getElementById('btn-sync-all');
+  if (all && label) all.textContent = label;
 }
 
-// ═══ REFRESH ═══
-function refreshAll(){
-  document.getElementById('n-total').textContent = DATA.length + ' aserraderos';
-  renderResumen();
-  renderRankingFilters();
-  renderRanking();
-  renderAbastecimiento();
-  renderCompareSelects();
-  renderMapa();
+async function syncItem(idx) {
+  if (syncInProgress) return;
+  if (!isOnline) { showToast('Sin conexión — guardado localmente'); return; }
+  if (!CFG.url) { showToast('No hay URL de sincronización configurada'); return; }
+  const list = getSaved();
+  const item = list[idx];
+  if (!item || item.syncing) return;
+
+  syncInProgress = true;
+  item.syncing = true;
+  setSaved(list);
+  setSyncButtonsDisabled(true);
+
+  try {
+    await sendToSheets(item.data);
+    // borrar de la cola por ficha_id (no por índice, que puede haber cambiado)
+    const fresh = getSaved().filter(it => it.id !== item.id);
+    setSaved(fresh);
+    showToast('Sincronizado');
+  } catch (e) {
+    const fresh = getSaved();
+    const t = fresh.find(it => it.id === item.id);
+    if (t) t.syncing = false;
+    setSaved(fresh);
+    showToast('Error al sincronizar — se reintentará');
+  } finally {
+    syncInProgress = false;
+    setSyncButtonsDisabled(false, '↑ SINCRONIZAR TODAS');
+    renderSavedList(document.getElementById('main-content'));
+  }
 }
 
-function num(d,k){ const v=parseFloat(d[k]); return isNaN(v)?0:v; }
+async function syncAll() {
+  if (syncInProgress) return;
+  if (!isOnline) { showToast('Sin conexión'); return; }
+  if (!CFG.url) { showToast('No hay URL de sincronización configurada'); return; }
 
-// ═══ RESUMEN ═══
-function renderResumen(){
-  const el = document.getElementById('resumen-content');
-  if(!DATA.length){ el.innerHTML = emptyState(); return; }
+  syncInProgress = true;
+  setSyncButtonsDisabled(true, 'Sincronizando...');
 
-  const scores = DATA.map(d=>num(d,'ev_score')).filter(n=>n>0);
-  const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(0) : '—';
-  const cats = {A:0,B:0,C:0,D:0};
-  DATA.forEach(d=>{ const c=catOf(d); if(c) cats[c]++; });
-  const aptos = cats.A + cats.B;
-  const producenChips = DATA.filter(d=>(d.produce_chips||'').trim()==='Sí').length;
-  const volTotal = DATA.reduce((s,d)=> s + num(d,'vol_potencial'), 0);
+  let ok = 0;
+  const pending = getSaved();
+  for (const item of pending) {
+    try {
+      await sendToSheets(item.data);
+      // remover esta ficha por id inmediatamente tras enviarla
+      const fresh = getSaved().filter(it => it.id !== item.id);
+      setSaved(fresh);
+      ok++;
+    } catch {
+      // si falla, la ficha queda en la cola para reintento
+    }
+  }
 
-  el.innerHTML = `
-    <div class="metrics">
-      <div class="metric"><div class="metric-v">${DATA.length}</div><div class="metric-l">Aserraderos relevados</div></div>
-      <div class="metric"><div class="metric-v">${avg}</div><div class="metric-l">Score promedio</div><div class="metric-s">sobre 100</div></div>
-      <div class="metric"><div class="metric-v">${aptos}</div><div class="metric-l">Aptos (Cat. A + B)</div><div class="metric-s">${cats.A} A · ${cats.B} B</div></div>
-      <div class="metric"><div class="metric-v">${producenChips}</div><div class="metric-l">Ya producen chips</div></div>
-      <div class="metric"><div class="metric-v">${volTotal.toLocaleString('es-AR')}</div><div class="metric-l">Volumen potencial total</div><div class="metric-s">ton/mes (declarado)</div></div>
-    </div>
-    <div class="grid2">
-      <div class="card"><div class="card-title">DISTRIBUCIÓN POR CATEGORÍA</div><div class="chart-box"><canvas id="ch-cat"></canvas></div></div>
-      <div class="card"><div class="card-title">SCORE PROMEDIO POR PROVINCIA</div><div class="chart-box"><canvas id="ch-prov"></canvas></div></div>
-      <div class="card"><div class="card-title">INTERÉS EN EL PROYECTO</div><div class="chart-box"><canvas id="ch-interes"></canvas></div></div>
-      <div class="card"><div class="card-title">VOLUMEN POTENCIAL POR ASERRADERO</div><div class="chart-box"><canvas id="ch-vol"></canvas></div></div>
+  syncInProgress = false;
+  setSyncButtonsDisabled(false, '↑ SINCRONIZAR TODAS');
+  showToast(`${ok} ficha(s) sincronizadas`);
+  renderSavedList(document.getElementById('main-content'));
+}
+
+async function submitForm() {
+  if (syncInProgress) return;
+  saveLocal();
+  const justSaved = getSaved()[getSaved().length - 1];
+  formData = {};
+  if (isOnline && CFG.url && justSaved) {
+    syncInProgress = true;
+    try {
+      await sendToSheets(justSaved.data);
+      const fresh = getSaved().filter(it => it.id !== justSaved.id);
+      setSaved(fresh);
+      showSuccessModal(true);
+    } catch {
+      showSuccessModal(false);
+    } finally {
+      syncInProgress = false;
+    }
+  } else {
+    showSuccessModal(false);
+  }
+}
+
+function showSuccessModal(synced) {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-icon">${synced ? '✓' : '⤓'}</div>
+      <h3>${synced ? 'FICHA ENVIADA' : 'GUARDADA LOCALMENTE'}</h3>
+      <p>${synced
+        ? 'Los datos se registraron correctamente en Google Sheets.'
+        : 'La ficha quedó guardada en el dispositivo. Se sincronizará cuando haya conexión.'}</p>
+      <div class="modal-btns">
+        <button class="btn btn-next" style="flex:1" onclick="this.closest('.overlay').remove(); currentSection=0; buildNavTabs(); renderSection(0); scrollTop();">NUEVA FICHA</button>
+        <button class="btn btn-prev" style="flex:1" onclick="this.closest('.overlay').remove(); currentSection=${SAVED_IDX}; buildNavTabs(); renderSection(${SAVED_IDX});">VER GUARDADAS</button>
+      </div>
     </div>`;
-
-  renderCatChart(); renderProvChart(); renderInteresChart(); renderVolChart();
+  document.body.appendChild(overlay);
 }
 
-function destroy(id){ if(CHARTS[id]){ CHARTS[id].destroy(); delete CHARTS[id]; } }
-const CHOPTS = {responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#CCE6D9',font:{family:'Calibri'}}}},scales:{x:{ticks:{color:'#CCE6D9',font:{family:'Calibri'}},grid:{color:'#1f4332'}},y:{ticks:{color:'#CCE6D9',font:{family:'Calibri'}},grid:{color:'#1f4332'},beginAtZero:true}}};
-
-function renderCatChart(){
-  destroy('ch-cat');
-  const cats={A:0,B:0,C:0,D:0}; DATA.forEach(d=>{const c=catOf(d);if(c)cats[c]++;});
-  CHARTS['ch-cat']=new Chart(document.getElementById('ch-cat'),{
-    type:'doughnut',
-    data:{labels:['A · '+CAT_DESC.A,'B · '+CAT_DESC.B,'C · '+CAT_DESC.C,'D · '+CAT_DESC.D],
-      datasets:[{data:[cats.A,cats.B,cats.C,cats.D],backgroundColor:[CAT_COLORS.A,CAT_COLORS.B,CAT_COLORS.C,CAT_COLORS.D],borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#CCE6D9',font:{family:'Calibri',size:11},padding:10}}}}
-  });
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let toastTimeout;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2800);
 }
-function renderProvChart(){
-  destroy('ch-prov');
-  const provs=[...new Set(DATA.map(d=>d.provincia).filter(Boolean))];
-  const avgs=provs.map(p=>{const s=DATA.filter(d=>d.provincia===p).map(d=>num(d,'ev_score')).filter(n=>n>0);return s.length?+(s.reduce((a,b)=>a+b,0)/s.length).toFixed(1):0;});
-  CHARTS['ch-prov']=new Chart(document.getElementById('ch-prov'),{
-    type:'bar',data:{labels:provs,datasets:[{label:'Score promedio',data:avgs,backgroundColor:'#59A77F',borderRadius:4}]},
-    options:{...CHOPTS,plugins:{legend:{display:false}},scales:{...CHOPTS.scales,y:{...CHOPTS.scales.y,max:100}}}
-  });
-}
-function renderInteresChart(){
-  destroy('ch-interes');
-  const order=['Alto','Medio','Bajo','Nulo / no opinó'];
-  const counts=order.map(o=>DATA.filter(d=>(d.interes_proyecto||'').trim()===o).length);
-  CHARTS['ch-interes']=new Chart(document.getElementById('ch-interes'),{
-    type:'bar',data:{labels:order,datasets:[{data:counts,backgroundColor:['#9ADAB7','#59A77F','#d6b15c','#e07050'],borderRadius:4}]},
-    options:{...CHOPTS,plugins:{legend:{display:false}}}
-  });
-}
-function renderVolChart(){
-  destroy('ch-vol');
-  const sorted=[...DATA].filter(d=>num(d,'vol_potencial')>0).sort((a,b)=>num(b,'vol_potencial')-num(a,'vol_potencial')).slice(0,12);
-  CHARTS['ch-vol']=new Chart(document.getElementById('ch-vol'),{
-    type:'bar',data:{labels:sorted.map(d=>d.razon_social||'—'),datasets:[{label:'ton/mes',data:sorted.map(d=>num(d,'vol_potencial')),backgroundColor:sorted.map(d=>CAT_COLORS[catOf(d)]||'#3A8B6B'),borderRadius:4}]},
-    options:{...CHOPTS,indexAxis:'y',plugins:{legend:{display:false}}}
-  });
-}
-
-// ═══ RANKING ═══
-function renderRankingFilters(){
-  const el=document.getElementById('rank-filters');
-  const opts=[['todos','Todos'],['A','Cat. A'],['B','Cat. B'],['C','Cat. C'],['D','Cat. D']];
-  el.innerHTML=opts.map(([k,l])=>`<div class="chip ${rankFilter===k?'active':''}" onclick="setRankFilter('${k}')">${l}</div>`).join('');
-}
-function setRankFilter(k){ rankFilter=k; renderRankingFilters(); renderRanking(); }
-function renderRanking(){
-  const t=document.getElementById('rank-table');
-  if(!DATA.length){ t.innerHTML=''; document.getElementById('page-ranking').querySelector('.card').insertAdjacentHTML('beforeend',''); return; }
-  let rows=[...DATA];
-  if(rankFilter!=='todos') rows=rows.filter(d=>catOf(d)===rankFilter);
-  rows.sort((a,b)=>num(b,'ev_score')-num(a,'ev_score'));
-  t.innerHTML=`
-    <thead><tr>
-      <th>#</th><th>Aserradero</th><th>Provincia</th><th>Departamento</th>
-      <th>Score</th><th>Cat.</th><th>Produce chips</th><th>Vol. pot. (ton/mes)</th><th>Próximo paso</th>
-    </tr></thead>
-    <tbody>${rows.map((d,i)=>`
-      <tr>
-        <td>${i+1}</td>
-        <td class="rk-name">${d.razon_social||'—'}</td>
-        <td>${d.provincia||'—'}</td>
-        <td>${d.departamento||'—'}</td>
-        <td class="rk-score">${d.ev_score||'—'}</td>
-        <td>${catBadge(catOf(d))}</td>
-        <td>${d.produce_chips||'—'}</td>
-        <td>${d.vol_potencial||'—'}</td>
-        <td>${d.ev_proximo_paso||'—'}</td>
-      </tr>`).join('')}
-    </tbody>`;
-}
-
-// ═══ ABASTECIMIENTO ═══
-function renderAbastecimiento(){
-  const el=document.getElementById('abast-content');
-  if(!DATA.length){ el.innerHTML=emptyState(); return; }
-  el.innerHTML=`
-    <div class="grid2">
-      <div class="card"><div class="card-title">ORIGEN DE LA MADERA</div><div class="chart-box"><canvas id="ch-origen"></canvas></div></div>
-      <div class="card"><div class="card-title">RADIO DE ABASTECIMIENTO</div><div class="chart-box"><canvas id="ch-radio"></canvas></div></div>
-      <div class="card"><div class="card-title">DESTINO ACTUAL DE SUBPRODUCTOS</div><div class="chart-box"><canvas id="ch-destino"></canvas></div></div>
-      <div class="card"><div class="card-title">DISPONIBILIDAD DE CHIPS PARA CELULOSA</div><div class="chart-box"><canvas id="ch-disp"></canvas></div></div>
-    </div>`;
-  donut('ch-origen','origen_madera');
-  donut('ch-radio','radio_abast');
-  donut('ch-destino','destino_subprod');
-  donut('ch-disp','vol_disponible');
-}
-function donut(id,field){
-  destroy(id);
-  const counts={};
-  DATA.forEach(d=>{const v=(d[field]||'').trim()||'(sin dato)'; counts[v]=(counts[v]||0)+1;});
-  const labels=Object.keys(counts);
-  const palette=['#59A77F','#9ADAB7','#d6b15c','#e07050','#3A8B6B','#2B6046','#7fc4a0'];
-  CHARTS[id]=new Chart(document.getElementById(id),{
-    type:'doughnut',
-    data:{labels,datasets:[{data:Object.values(counts),backgroundColor:labels.map((_,i)=>palette[i%palette.length]),borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#CCE6D9',font:{family:'Calibri',size:10},padding:8}}}}
-  });
-}
-
-// ═══ COMPARAR ═══
-function renderCompareSelects(){
-  const a=document.getElementById('cmp-a'), b=document.getElementById('cmp-b');
-  if(!DATA.length){ a.innerHTML=b.innerHTML=''; document.getElementById('cmp-out').innerHTML=''; return; }
-  const opts='<option value="">— Seleccionar —</option>'+DATA.map((d,i)=>`<option value="${i}">${d.razon_social||('Ficha '+(i+1))}</option>`).join('');
-  a.innerHTML=opts; b.innerHTML=opts;
-}
-const CMP_FIELDS=[
-  ['ev_score','Score (0–100)'],['ev_categoria','Categoría'],['provincia','Provincia'],['departamento','Departamento'],
-  ['produce_chips','Produce chips'],['vol_potencial','Vol. potencial (ton/mes)'],['vol_disponible','Disponibilidad'],
-  ['interes_proyecto','Interés'],['origen_madera','Origen madera'],['radio_abast','Radio abast.'],
-  ['rollizos_mes','Rollizos (m³/mes)'],['prod_aserrada','Prod. aserrada (m³/mes)'],['ev_proximo_paso','Próximo paso']
-];
-function renderCompare(){
-  const ia=document.getElementById('cmp-a').value, ib=document.getElementById('cmp-b').value;
-  const out=document.getElementById('cmp-out');
-  if(ia===''||ib===''){ out.innerHTML='<p style="color:var(--text3);font-size:0.8rem;margin-top:14px">Elegí dos aserraderos para compararlos.</p>'; return; }
-  const A=DATA[ia], B=DATA[ib];
-  const col=(d)=>`<div class="cmp-card">
-    <div style="font-family:var(--mono);color:var(--accent);font-size:0.86rem;margin-bottom:6px">${d.razon_social||'—'}</div>
-    <div style="margin-bottom:10px">${catBadge(catOf(d))} <span style="color:var(--text3);font-size:0.72rem">${CAT_DESC[catOf(d)]||''}</span></div>
-    ${CMP_FIELDS.map(([k,l])=>`<div class="cmp-row"><span class="k">${l}</span><span class="v">${d[k]||'—'}</span></div>`).join('')}
-  </div>`;
-  out.innerHTML=`<div class="cmp-cols">${col(A)}${col(B)}</div>`;
-}
-
-// ═══ MAPA ═══
-function renderMapa(){
-  const el=document.getElementById('mapa-list');
-  if(!DATA.length){ el.innerHTML='<p style="color:var(--text3);font-size:0.8rem">Sin datos.</p>'; return; }
-  const withGps=DATA.filter(d=>(d.gps_lat&&d.gps_lon)||(d.gps_coords&&d.gps_coords.includes(',')));
-  if(!withGps.length){ el.innerHTML='<p style="color:var(--text3);font-size:0.8rem">Ninguna ficha tiene coordenadas GPS cargadas.</p>'; return; }
-  el.innerHTML=`<div style="overflow-x:auto"><table>
-    <thead><tr><th>Aserradero</th><th>Localidad</th><th>Cat.</th><th>Coordenadas</th><th>Ver en mapa</th></tr></thead>
-    <tbody>${withGps.map(d=>{
-      let lat=d.gps_lat, lon=d.gps_lon;
-      if((!lat||!lon)&&d.gps_coords&&d.gps_coords.includes(',')){const p=d.gps_coords.split(',');lat=p[0].trim();lon=p[1].trim();}
-      return `<tr>
-        <td class="rk-name">${d.razon_social||'—'}</td>
-        <td>${d.localidad||d.departamento||'—'}</td>
-        <td>${catBadge(catOf(d))}</td>
-        <td style="font-family:var(--mono);font-size:0.74rem">${lat}, ${lon}</td>
-        <td><a class="maplink" href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">Abrir ↗</a></td>
-      </tr>`;}).join('')}
-    </tbody></table></div>`;
-}
-
-// ═══ EMPTY ═══
-function emptyState(){
-  return `<div class="empty">
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="30" fill="none" stroke="#3A8B6B" stroke-width="6"/><circle cx="50" cy="50" r="8" fill="#3A8B6B"/></svg>
-    <h3>Sin datos cargados</h3>
-    <p>Cargá un archivo CSV exportado de la Sheet, o pegá la URL de la Sheet publicada como CSV. También podés ver el panel con datos de ejemplo para explorar su funcionamiento.</p>
-  </div>`;
-}
-
-// init: prellenar campo con la última URL usada (o la fija) y autocargar
-(function(){
-  let saved = '';
-  try{ saved = localStorage.getItem('dash_sheet_url') || ''; }catch(e){}
-  const startUrl = saved || SHEET_CSV_URL;
-  const input = document.getElementById('sheet-url');
-  if(input && startUrl) input.value = startUrl;
-  renderResumen();
-  if(startUrl) loadFromSheets(startUrl); // carga automática al abrir
-})();
 </script>
 </body>
 </html>
