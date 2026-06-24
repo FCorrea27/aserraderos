@@ -422,10 +422,12 @@ const SCHEMA = {
     questions: [
       { id: 'especies', type: 'selm', label: 'Especies procesadas',
         options: ['Pinus taeda','Pinus elliottii','Pino híbrido','Eucalyptus grandis','Eucalyptus spp.','Otra'] },
-      { id: 'rollizos_mes', type: 'num', label: 'Consumo de rollizos', unit: 'm³/mes' },
-      { id: 'prod_aserrada', type: 'num', label: 'Producción de madera aserrada', unit: 'm³/mes' },
-      { id: 'cap_instalada', type: 'num', label: 'Capacidad instalada de aserrado', unit: 'm³/mes' },
-      { id: 'uso_capacidad', type: 'calc', label: 'Uso de capacidad instalada', formula: 'Producción / Capacidad × 100', unit: '%' },
+      { id: 'rollizos_mes', type: 'numconv', label: 'Consumo de rollizos', units: ['ton','m³'], target: 'm³/mes',
+        conv: { 'ton': 1/0.95, 'm³': 1 }, convNote: 'estimado con densidad pino verde 0,95 ton/m³' },
+      { id: 'prod_aserrada', type: 'numconv', label: 'Producción de madera aserrada', units: ['pie tablar','m³'], target: 'm³/mes',
+        conv: { 'pie tablar': 0.00235974, 'm³': 1 }, convNote: '1 pie tablar = 0,00235974 m³' },
+      { id: 'cap_instalada', type: 'num', label: 'Capacidad instalada de procesamiento de rollizo', unit: 'm³/mes' },
+      { id: 'uso_capacidad', type: 'calc', label: 'Uso de capacidad instalada', formula: 'Rollizos consumidos / Capacidad × 100', unit: '%' },
       { id: 'turnos', type: 'num', label: 'Turnos por día', unit: 'turnos' },
       { id: 'dias_mes', type: 'num', label: 'Días operados por mes', unit: 'días' },
       { id: 'equip_aserrado', type: 'sel1', label: 'Equipamiento de aserrado principal',
@@ -806,6 +808,7 @@ function renderQuestion(q) {
     case 'sn':        body.appendChild(renderSN(q)); break;
     case 'selm':      body.appendChild(renderSelm(q)); break;
     case 'num':       body.appendChild(renderNum(q)); break;
+    case 'numconv':   body.appendChild(renderNumConv(q)); break;
     case 'date':      body.appendChild(renderDate(q)); break;
     case 'text1':     body.appendChild(renderText1(q)); break;
     case 'textnote':  body.appendChild(renderTextNote(q)); break;
@@ -921,6 +924,80 @@ function renderNum(q) {
   return wrap;
 }
 
+// Campo numérico con selector de unidad y conversión automática a la unidad objetivo (m³)
+function renderNumConv(q) {
+  const outer = document.createElement('div');
+  // claves de almacenamiento
+  const kVal = q.id + '_valor';      // valor original que cargó
+  const kUni = q.id + '_unidad';     // unidad elegida
+  const kM3  = q.id;                  // resultado en m³ (clave principal, la usa el cálculo)
+
+  // unidad por defecto: la primera de la lista
+  if (!formData[kUni]) formData[kUni] = q.units[0];
+
+  const group = document.createElement('div');
+  group.className = 'num-group';
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'num-input';
+  input.placeholder = '—';
+  input.inputMode = 'decimal';
+  if (formData[kVal] !== undefined && !isNaN(formData[kVal])) input.value = formData[kVal];
+
+  const sel = document.createElement('select');
+  sel.className = 'sel-drop';
+  sel.style.cssText = 'max-width:130px;flex-shrink:0';
+  q.units.forEach(u => {
+    const o = document.createElement('option');
+    o.value = u; o.textContent = u;
+    if (formData[kUni] === u) o.selected = true;
+    sel.appendChild(o);
+  });
+
+  // línea de equivalente en m³
+  const equiv = document.createElement('div');
+  equiv.className = 'calc-display';
+  equiv.style.marginTop = '10px';
+
+  function recompute() {
+    const v = parseFloat(input.value);
+    const unidad = sel.value;
+    formData[kUni] = unidad;
+    if (isNaN(v)) {
+      formData[kVal] = undefined;
+      formData[kM3] = undefined;
+      equiv.innerHTML = `<span>Equivalente</span><span class="calc-val">— <small>${q.target}</small></span>`;
+    } else {
+      formData[kVal] = v;
+      const factor = q.conv[unidad];
+      const m3 = +(v * factor).toFixed(2);
+      formData[kM3] = m3;
+      const yaEsM3 = (unidad === 'm³');
+      equiv.innerHTML = `<span>${yaEsM3 ? 'Valor' : 'Equivalente'}</span><span class="calc-val">${m3.toLocaleString('es-AR')} <small>${q.target}</small></span>`;
+    }
+    recalcScores();
+  }
+
+  input.oninput = recompute;
+  sel.onchange = recompute;
+
+  group.appendChild(input);
+  group.appendChild(sel);
+  outer.appendChild(group);
+  outer.appendChild(equiv);
+
+  const note = document.createElement('div');
+  note.className = 'calc-formula';
+  note.style.marginTop = '4px';
+  note.textContent = '⟳ ' + q.convNote;
+  outer.appendChild(note);
+
+  // inicializar el display
+  recompute();
+  return outer;
+}
+
 function renderDate(q) {
   const input = document.createElement('input');
   input.type = 'date';
@@ -1021,8 +1098,8 @@ function categoriaFromScore(s) {
 function getCalcValue(q) {
   if (q.id === 'uso_capacidad') {
     const cap = parseFloat(formData['cap_instalada']);
-    const prod = parseFloat(formData['prod_aserrada']);
-    if (cap && prod) { const v = (prod/cap*100).toFixed(1); formData[q.id] = parseFloat(v); return v; }
+    const rollizos = parseFloat(formData['rollizos_mes']); // consumo de rollizos en m³ (entrada)
+    if (cap && rollizos) { const v = (rollizos/cap*100).toFixed(1); formData[q.id] = parseFloat(v); return v; }
     return null;
   }
   if (q.id === 'ev_score') {
