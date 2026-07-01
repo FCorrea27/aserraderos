@@ -446,6 +446,23 @@ function renderCompare(){
 }
 
 // ═══ MAPA ═══
+// Repara coordenadas mal formateadas por locale (ej. "-26.019.300" -> "-26.019300").
+// Las coordenadas geográficas tienen 1 solo punto decimal; puntos extra son separadores
+// de miles introducidos por la exportación CSV de Google Sheets en locale es-AR.
+function fixCoord(v){
+  if(v===undefined||v===null) return '';
+  let s=String(v).trim();
+  if(s==='') return '';
+  const neg=s.startsWith('-');
+  s=s.replace('-','').replace(/,/g,'.'); // normalizar coma decimal
+  const parts=s.split('.');
+  if(parts.length>2){
+    // varios puntos: el primer grupo es la parte entera, el resto es la fracción
+    s=parts[0]+'.'+parts.slice(1).join('');
+  }
+  return (neg?'-':'')+s;
+}
+
 function renderMapa(){
   const el=document.getElementById('mapa-list');
   if(!DATA.length){ el.innerHTML='<p style="color:var(--text3);font-size:0.8rem">Sin datos.</p>'; return; }
@@ -456,6 +473,7 @@ function renderMapa(){
     <tbody>${withGps.map(d=>{
       let lat=d.gps_lat, lon=d.gps_lon;
       if((!lat||!lon)&&d.gps_coords&&d.gps_coords.includes(',')){const p=d.gps_coords.split(',');lat=p[0].trim();lon=p[1].trim();}
+      lat=fixCoord(lat); lon=fixCoord(lon);
       return `<tr>
         <td class="rk-name">${d.razon_social||'—'}</td>
         <td>${d.localidad||d.departamento||'—'}</td>
